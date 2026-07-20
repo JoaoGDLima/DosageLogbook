@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dosage Logbook — Controle de Medicamentos</title>
+<link rel="icon" type="image/svg+xml" href="icon/icon.svg">
+<link rel="apple-touch-icon" href="icon/icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0E1518;
+    --bg-alt:#121B1F;
+    --card:#182226;
+    --card-hi:#1E2A2F;
+    --line:#2A383E;
+    --ink:#E9F1F0;
+    --muted:#8AA0A3;
+    --teal:#4FD1C5;
+    --teal-dim:#2E6B66;
+    --amber:#E8B75D;
+    --danger:#E17B6B;
+    --radius:10px;
+    --mono:'IBM Plex Mono', monospace;
+    --sans:'IBM Plex Sans', sans-serif;
+    --display:'Fraunces', serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      linear-gradient(var(--bg-alt) 1px, transparent 1px) 0 0/100% 32px,
+      var(--bg);
+    color:var(--ink);
+    font-family:var(--sans);
+    min-height:100vh;
+    padding-bottom:60px;
+  }
+  a{color:inherit;}
+  .wrap{max-width:920px;margin:0 auto;padding:0 20px;}
+
+  header.top{
+    border-bottom:1px solid var(--line);
+    padding:28px 0 20px;
+    margin-bottom:8px;
+  }
+  .brand{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;}
+  .brand .mark{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:.14em;
+    color:var(--teal);
+    border:1px solid var(--teal-dim);
+    padding:3px 8px;
+    border-radius:4px;
+    text-transform:uppercase;
+  }
+  h1{
+    font-family:var(--display);
+    font-weight:600;
+    font-size:28px;
+    margin:10px 0 4px;
+    letter-spacing:.01em;
+  }
+  .sub{color:var(--muted);font-size:14px;font-family:var(--mono);}
+
+  nav.tabs{
+    display:flex;
+    gap:2px;
+    margin:24px 0 22px;
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    overflow:hidden;
+    background:var(--bg-alt);
+  }
+  nav.tabs button{
+    flex:1;
+    background:transparent;
+    border:none;
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:12.5px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    padding:13px 8px;
+    cursor:pointer;
+    border-right:1px solid var(--line);
+    transition:background .15s,color .15s;
+  }
+  nav.tabs button:last-child{border-right:none;}
+  nav.tabs button:hover{color:var(--ink);background:var(--card-hi);}
+  nav.tabs button.active{color:var(--bg);background:var(--teal);font-weight:600;}
+
+  section.view{display:none;}
+  section.view.active{display:block;animation:fade .25s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+
+  .panel{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:20px;
+    margin-bottom:18px;
+  }
+  .panel h2{
+    font-family:var(--display);
+    font-size:17px;
+    font-weight:600;
+    margin:0 0 16px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .panel h2 .n{
+    font-family:var(--mono);
+    color:var(--teal);
+    font-size:12px;
+  }
+
+  label{
+    display:block;
+    font-family:var(--mono);
+    font-size:11.5px;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin:14px 0 6px;
+  }
+  label:first-child{margin-top:0;}
+  input[type=text], input[type=number], input[type=time], select, textarea{
+    width:100%;
+    background:var(--bg-alt);
+    border:1px solid var(--line);
+    color:var(--ink);
+    border-radius:6px;
+    padding:10px 12px;
+    font-family:var(--sans);
+    font-size:14.5px;
+    outline:none;
+    transition:border-color .15s;
+  }
+  input:focus, select:focus, textarea:focus{border-color:var(--teal);}
+  .row{display:flex;gap:14px;flex-wrap:wrap;}
+  .row > div{flex:1;min-width:150px;}
+
+  .weekdays{display:flex;gap:6px;flex-wrap:wrap;}
+  .weekdays label{
+    margin:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:42px;
+    height:38px;
+    border:1px solid var(--line);
+    border-radius:6px;
+    background:var(--bg-alt);
+    cursor:pointer;
+    text-transform:none;
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--muted);
+  }
+  .weekdays input{display:none;}
+  .weekdays input:checked + span{color:var(--bg);}
+  .weekdays label:has(input:checked){background:var(--teal);border-color:var(--teal);}
+  .weekdays label:has(input:checked) span{color:var(--bg);font-weight:600;}
+
+  button.btn{
+    background:var(--teal);
+    color:#08201E;
+    border:none;
+    font-family:var(--sans);
+    font-weight:600;
+    font-size:14px;
+    padding:11px 18px;
+    border-radius:6px;
+    cursor:pointer;
+    margin-top:18px;
+    transition:filter .15s;
+  }
+  button.btn:hover{filter:brightness(1.08);}
+  button.btn.secondary{
+    background:transparent;
+    color:var(--teal);
+    border:1px solid var(--teal-dim);
+  }
+  button.btn.danger{background:transparent;color:var(--danger);border:1px solid #5A3733;margin-top:0;padding:6px 10px;font-size:12px;}
+  button.btn:disabled{opacity:.4;cursor:not-allowed;}
+
+  /* Vial gauge - signature element */
+  .substance-card{
+    display:flex;
+    gap:16px;
+    align-items:stretch;
+    background:var(--bg-alt);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:14px;
+    margin-bottom:10px;
+  }
+  .vial{
+    width:26px;
+    flex:none;
+    border:1px solid var(--line);
+    border-radius:6px 6px 3px 3px;
+    background:
+      repeating-linear-gradient(to top, transparent 0 7px, rgba(255,255,255,.05) 7px 8px);
+    position:relative;
+    overflow:hidden;
+  }
+  .vial .fill{
+    position:absolute;
+    bottom:0;left:0;right:0;
+    background:linear-gradient(180deg, var(--teal), var(--teal-dim));
+    transition:height .4s ease;
+  }
+  .vial.low .fill{background:linear-gradient(180deg, var(--amber), #8a6428);}
+  .vial.empty .fill{background:linear-gradient(180deg, var(--danger), #7a3229);}
+  .sub-info{flex:1;}
+  .sub-info .name{font-weight:600;font-size:15px;}
+  .sub-info .meta{font-family:var(--mono);font-size:12.5px;color:var(--muted);margin-top:4px;}
+  .sub-info .stock{font-family:var(--mono);font-size:13px;margin-top:6px;}
+  .stock b{color:var(--teal);}
+  .sub-actions{display:flex;flex-direction:column;gap:6px;justify-content:center;}
+
+  .cycle-card{
+    background:var(--bg-alt);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:14px;
+    margin-bottom:10px;
+  }
+  .cycle-card .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+  .cycle-card .name{font-weight:600;font-size:15px;}
+  .cycle-card .meta{font-family:var(--mono);font-size:12.5px;color:var(--muted);margin-top:4px;}
+  .days-pill{display:flex;gap:4px;margin-top:8px;flex-wrap:wrap;}
+  .days-pill span{
+    font-family:var(--mono);font-size:11px;
+    background:var(--card-hi);border:1px solid var(--line);
+    border-radius:4px;padding:2px 6px;color:var(--muted);
+  }
+  .days-pill span.on{color:var(--teal);border-color:var(--teal-dim);}
+
+  .calc-readout{
+    margin-top:16px;
+    border:1px dashed var(--teal-dim);
+    border-radius:8px;
+    padding:16px;
+    text-align:center;
+    background:rgba(79,209,197,.05);
+  }
+  .calc-readout .big{
+    font-family:var(--mono);
+    font-size:34px;
+    font-weight:600;
+    color:var(--teal);
+    line-height:1;
+  }
+  .calc-readout .label{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin-top:6px;
+  }
+
+  .empty-state{
+    text-align:center;
+    padding:30px 10px;
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:13px;
+  }
+
+  .history-item{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:12px 0;
+    border-bottom:1px solid var(--line);
+    font-size:14px;
+  }
+  .history-item:last-child{border-bottom:none;}
+  .history-item .hl{font-weight:600;}
+  .history-item .hr{font-family:var(--mono);color:var(--teal);font-size:13px;text-align:right;}
+  .history-item .date{font-family:var(--mono);color:var(--muted);font-size:11.5px;}
+
+  .banner{
+    font-family:var(--mono);
+    font-size:12.5px;
+    padding:10px 14px;
+    border-radius:6px;
+    margin-bottom:16px;
+    border:1px solid;
+  }
+  .banner.warn{color:var(--amber);border-color:#5a4a2e;background:rgba(232,183,93,.06);}
+  .banner.err{color:var(--danger);border-color:#5a3229;background:rgba(225,123,107,.06);}
+  .banner.ok{color:var(--teal);border-color:var(--teal-dim);background:rgba(79,209,197,.06);}
+
+  select#reg-substance option{background:var(--bg-alt);}
+  footer.foot{
+    max-width:920px;margin:30px auto 0;padding:0 20px;
+    color:var(--muted);font-family:var(--mono);font-size:11px;
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <span class="mark">registro clínico pessoal</span>
+    </div>
+    <h1>Dosage Logbook</h1>
+    <div class="sub">estoque · ciclos · aplicações registradas em tempo real</div>
+  </header>
+
+  <div id="config-banner"></div>
+
+  <nav class="tabs">
+    <button data-tab="substancias" class="active">Substâncias</button>
+    <button data-tab="ciclos">Ciclos</button>
+    <button data-tab="registrar">Registrar</button>
+    <button data-tab="historico">Histórico</button>
+  </nav>
+
+  <!-- SUBSTÂNCIAS -->
+  <section class="view active" id="view-substancias">
+    <div class="panel">
+      <h2>Nova substância <span class="n">// cadastro</span></h2>
+      <form id="form-substance">
+        <div class="row">
+          <div>
+            <label>Nome</label>
+            <input type="text" id="sub-name" placeholder="Ex: Substância A" required>
+          </div>
+          <div>
+            <label>Concentração (mg/ml)</label>
+            <input type="number" id="sub-conc" step="any" min="0" placeholder="250" required>
+          </div>
+          <div>
+            <label>Volume disponível (ml)</label>
+            <input type="number" id="sub-vol" step="any" min="0" placeholder="10" required>
+          </div>
+        </div>
+        <button type="submit" class="btn">Cadastrar substância</button>
+      </form>
+    </div>
+
+    <div class="panel">
+      <h2>Estoque <span class="n" id="sub-count"></span></h2>
+      <div id="substance-list"><div class="empty-state">Nenhuma substância cadastrada ainda.</div></div>
+    </div>
+  </section>
+
+  <!-- CICLOS -->
+  <section class="view" id="view-ciclos">
+    <div class="panel">
+      <h2>Novo ciclo <span class="n">// agenda</span></h2>
+      <form id="form-cycle">
+        <label>Nome do ciclo</label>
+        <input type="text" id="cyc-name" placeholder="Ex: Ciclo de manutenção" required>
+
+        <label>Substância</label>
+        <select id="cyc-substance" required></select>
+
+        <div class="row">
+          <div>
+            <label>Dose por aplicação (ml)</label>
+            <input type="number" id="cyc-dose" step="any" min="0" placeholder="1" required>
+          </div>
+          <div>
+            <label>Horário</label>
+            <input type="time" id="cyc-time" required>
+          </div>
+        </div>
+
+        <label>Dias da semana</label>
+        <div class="weekdays" id="cyc-days">
+          <label><input type="checkbox" value="0"><span>Dom</span></label>
+          <label><input type="checkbox" value="1"><span>Seg</span></label>
+          <label><input type="checkbox" value="2"><span>Ter</span></label>
+          <label><input type="checkbox" value="3"><span>Qua</span></label>
+          <label><input type="checkbox" value="4"><span>Qui</span></label>
+          <label><input type="checkbox" value="5"><span>Sex</span></label>
+          <label><input type="checkbox" value="6"><span>Sáb</span></label>
+        </div>
+
+        <label>Observações (opcional)</label>
+        <textarea id="cyc-notes" rows="2" placeholder="Notas do ciclo..."></textarea>
+
+        <button type="submit" class="btn">Cadastrar ciclo</button>
+      </form>
+    </div>
+
+    <div class="panel">
+      <h2>Ciclos definidos <span class="n" id="cyc-count"></span></h2>
+      <div id="cycle-list"><div class="empty-state">Nenhum ciclo cadastrado ainda.</div></div>
+    </div>
+  </section>
+
+  <!-- REGISTRAR -->
+  <section class="view" id="view-registrar">
+    <div class="panel">
+      <h2>Registrar aplicação <span class="n">// nova entrada</span></h2>
+      <form id="form-application">
+        <label>Substância</label>
+        <select id="reg-substance" required></select>
+
+        <label>Quantidade aplicada (ml)</label>
+        <input type="number" id="reg-ml" step="any" min="0" placeholder="1" required>
+
+        <label>Observações (opcional)</label>
+        <textarea id="reg-notes" rows="2" placeholder="Local da aplicação, sensações, etc."></textarea>
+
+        <div class="calc-readout">
+          <div class="big" id="reg-mg-display">0 mg</div>
+          <div class="label">dose calculada com base no cadastro</div>
+        </div>
+
+        <div id="reg-stock-warning"></div>
+
+        <button type="submit" class="btn" id="reg-submit">Registrar aplicação</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- HISTÓRICO -->
+  <section class="view" id="view-historico">
+    <div class="panel">
+      <h2>Histórico de aplicações <span class="n" id="hist-count"></span></h2>
+      <div id="history-list"><div class="empty-state">Nenhuma aplicação registrada ainda.</div></div>
+    </div>
+  </section>
+</div>
+
+<footer class="foot">Dados armazenados no seu próprio projeto Firebase — apenas você tem acesso, conforme as regras de segurança configuradas.</footer>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+import {
+  getFirestore, collection, addDoc, doc, updateDoc, deleteDoc,
+  onSnapshot, query, orderBy, serverTimestamp, increment
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+/* ============================================================
+   1) CONFIGURAÇÃO DO FIREBASE
+   Substitua os valores abaixo pelos do SEU projeto Firebase.
+   Console: https://console.firebase.google.com
+   Crie um projeto → Adicionar app da Web → copie o firebaseConfig.
+   Ative o Firestore Database (modo produção) e configure as regras
+   de segurança (veja o README que acompanha este arquivo).
+============================================================ */
+const firebaseConfig = {
+  apiKey: "SUA_API_KEY",
+  authDomain: "SEU_PROJETO.firebaseapp.com",
+  projectId: "SEU_PROJETO",
+  storageBucket: "SEU_PROJETO.appspot.com",
+  messagingSenderId: "SEU_SENDER_ID",
+  appId: "SEU_APP_ID"
+};
+
+const isConfigured = !Object.values(firebaseConfig).some(v => String(v).startsWith("SEU_") || String(v).startsWith("SUA_"));
+
+const configBanner = document.getElementById('config-banner');
+let db = null;
+
+if (!isConfigured) {
+  configBanner.innerHTML = `<div class="banner err">
+    Configuração do Firebase pendente. Edite o objeto <b>firebaseConfig</b> no início do
+    &lt;script&gt; deste arquivo com as chaves do seu projeto antes de usar o app.
+  </div>`;
+} else {
+  try {
+    const app = initializeApp(firebaseConfig);
+    db = getFirestore(app);
+  } catch (e) {
+    configBanner.innerHTML = `<div class="banner err">Erro ao iniciar o Firebase: ${e.message}</div>`;
+  }
+}
+
+/* ============================================================
+   2) NAVEGAÇÃO ENTRE ABAS
+============================================================ */
+document.querySelectorAll('nav.tabs button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('nav.tabs button').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('section.view').forEach(v => v.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('view-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+/* ============================================================
+   3) ESTADO LOCAL (espelha o Firestore via onSnapshot)
+============================================================ */
+let substances = [];
+let cycles = [];
+let applications = [];
+
+const WEEKDAY_LABELS = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+const fmt = n => Number(n).toLocaleString('pt-BR', { maximumFractionDigits: 3 });
+
+function stockLevelClass(sub){
+  if (sub.availableMl <= 0) return 'empty';
+  if (sub.availableMl <= sub.startMl * 0.15) return 'low';
+  return '';
+}
+
+/* ============================================================
+   4) SUBSTÂNCIAS
+============================================================ */
+const formSubstance = document.getElementById('form-substance');
+formSubstance.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (!db) return;
+  const name = document.getElementById('sub-name').value.trim();
+  const conc = parseFloat(document.getElementById('sub-conc').value);
+  const vol = parseFloat(document.getElementById('sub-vol').value);
+  if (!name || isNaN(conc) || isNaN(vol)) return;
+
+  await addDoc(collection(db, 'substances'), {
+    name,
+    concentrationMgMl: conc,
+    availableMl: vol,
+    startMl: vol,
+    createdAt: serverTimestamp()
+  });
+  formSubstance.reset();
+});
+
+function renderSubstances(){
+  const list = document.getElementById('substance-list');
+  document.getElementById('sub-count').textContent = substances.length ? `// ${substances.length}` : '';
+  if (!substances.length){
+    list.innerHTML = `<div class="empty-state">Nenhuma substância cadastrada ainda.</div>`;
+    return;
+  }
+  list.innerHTML = substances.map(s => {
+    const pct = s.startMl > 0 ? Math.max(0, Math.min(100, (s.availableMl / s.startMl) * 100)) : 0;
+    return `
+    <div class="substance-card">
+      <div class="vial ${stockLevelClass(s)}"><div class="fill" style="height:${pct}%"></div></div>
+      <div class="sub-info">
+        <div class="name">${escapeHtml(s.name)}</div>
+        <div class="meta">${fmt(s.concentrationMgMl)} mg/ml</div>
+        <div class="stock">disponível: <b>${fmt(s.availableMl)} ml</b> de ${fmt(s.startMl)} ml</div>
+      </div>
+      <div class="sub-actions">
+        <button class="btn danger" data-del-sub="${s.id}">Remover</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  list.querySelectorAll('[data-del-sub]').forEach(b => {
+    b.addEventListener('click', async () => {
+      if (confirm('Remover esta substância? O histórico de aplicações associado será mantido.')) {
+        await deleteDoc(doc(db, 'substances', b.dataset.delSub));
+      }
+    });
+  });
+}
+
+function refreshSubstanceSelects(){
+  const selects = [document.getElementById('cyc-substance'), document.getElementById('reg-substance')];
+  selects.forEach(sel => {
+    const current = sel.value;
+    sel.innerHTML = substances.length
+      ? substances.map(s => `<option value="${s.id}">${escapeHtml(s.name)} — ${fmt(s.concentrationMgMl)} mg/ml (${fmt(s.availableMl)} ml disp.)</option>`).join('')
+      : `<option value="">Cadastre uma substância primeiro</option>`;
+    if ([...sel.options].some(o => o.value === current)) sel.value = current;
+  });
+  updateCalcReadout();
+}
+
+/* ============================================================
+   5) CICLOS
+============================================================ */
+const formCycle = document.getElementById('form-cycle');
+formCycle.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (!db) return;
+  const name = document.getElementById('cyc-name').value.trim();
+  const substanceId = document.getElementById('cyc-substance').value;
+  const dose = parseFloat(document.getElementById('cyc-dose').value);
+  const time = document.getElementById('cyc-time').value;
+  const notes = document.getElementById('cyc-notes').value.trim();
+  const days = [...document.querySelectorAll('#cyc-days input:checked')].map(i => parseInt(i.value));
+  if (!name || !substanceId || isNaN(dose) || !time || !days.length) {
+    alert('Preencha todos os campos obrigatórios e selecione ao menos um dia.');
+    return;
+  }
+
+  await addDoc(collection(db, 'cycles'), {
+    name, substanceId, doseMl: dose, time, days, notes,
+    createdAt: serverTimestamp()
+  });
+  formCycle.reset();
+  document.querySelectorAll('#cyc-days input').forEach(i => i.checked = false);
+});
+
+function renderCycles(){
+  const list = document.getElementById('cycle-list');
+  document.getElementById('cyc-count').textContent = cycles.length ? `// ${cycles.length}` : '';
+  if (!cycles.length){
+    list.innerHTML = `<div class="empty-state">Nenhum ciclo cadastrado ainda.</div>`;
+    return;
+  }
+  list.innerHTML = cycles.map(c => {
+    const sub = substances.find(s => s.id === c.substanceId);
+    const daysPills = WEEKDAY_LABELS.map((label, i) =>
+      `<span class="${c.days.includes(i) ? 'on' : ''}">${label}</span>`).join('');
+    return `
+    <div class="cycle-card">
+      <div class="top">
+        <div>
+          <div class="name">${escapeHtml(c.name)}</div>
+          <div class="meta">${sub ? escapeHtml(sub.name) : '(substância removida)'} · ${fmt(c.doseMl)} ml às ${c.time}</div>
+        </div>
+        <button class="btn danger" data-del-cyc="${c.id}">Remover</button>
+      </div>
+      <div class="days-pill">${daysPills}</div>
+      ${c.notes ? `<div class="meta" style="margin-top:8px;">${escapeHtml(c.notes)}</div>` : ''}
+    </div>`;
+  }).join('');
+
+  list.querySelectorAll('[data-del-cyc]').forEach(b => {
+    b.addEventListener('click', async () => {
+      if (confirm('Remover este ciclo?')) {
+        await deleteDoc(doc(db, 'cycles', b.dataset.delCyc));
+      }
+    });
+  });
+}
+
+/* ============================================================
+   6) REGISTRAR APLICAÇÃO
+============================================================ */
+const regSubstanceSel = document.getElementById('reg-substance');
+const regMlInput = document.getElementById('reg-ml');
+
+function updateCalcReadout(){
+  const sub = substances.find(s => s.id === regSubstanceSel.value);
+  const ml = parseFloat(regMlInput.value) || 0;
+  const mg = sub ? sub.concentrationMgMl * ml : 0;
+  document.getElementById('reg-mg-display').textContent = `${fmt(mg)} mg`;
+
+  const warnBox = document.getElementById('reg-stock-warning');
+  const submitBtn = document.getElementById('reg-submit');
+  if (sub && ml > sub.availableMl) {
+    warnBox.innerHTML = `<div class="banner warn">Quantidade maior que o disponível em estoque (${fmt(sub.availableMl)} ml).</div>`;
+    submitBtn.disabled = true;
+  } else {
+    warnBox.innerHTML = '';
+    submitBtn.disabled = false;
+  }
+}
+regSubstanceSel.addEventListener('change', updateCalcReadout);
+regMlInput.addEventListener('input', updateCalcReadout);
+
+const formApplication = document.getElementById('form-application');
+formApplication.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (!db) return;
+  const substanceId = regSubstanceSel.value;
+  const ml = parseFloat(regMlInput.value);
+  const notes = document.getElementById('reg-notes').value.trim();
+  const sub = substances.find(s => s.id === substanceId);
+  if (!sub || isNaN(ml) || ml <= 0) return;
+  if (ml > sub.availableMl) {
+    alert('Quantidade aplicada maior que o estoque disponível.');
+    return;
+  }
+  const mg = sub.concentrationMgMl * ml;
+
+  await addDoc(collection(db, 'applications'), {
+    substanceId,
+    substanceName: sub.name,
+    mlApplied: ml,
+    mgApplied: mg,
+    notes,
+    appliedAt: serverTimestamp()
+  });
+
+  await updateDoc(doc(db, 'substances', substanceId), {
+    availableMl: increment(-ml)
+  });
+
+  formApplication.reset();
+  updateCalcReadout();
+});
+
+/* ============================================================
+   7) HISTÓRICO
+============================================================ */
+function renderHistory(){
+  const list = document.getElementById('history-list');
+  document.getElementById('hist-count').textContent = applications.length ? `// ${applications.length}` : '';
+  if (!applications.length){
+    list.innerHTML = `<div class="empty-state">Nenhuma aplicação registrada ainda.</div>`;
+    return;
+  }
+  list.innerHTML = applications.map(a => {
+    const date = a.appliedAt?.toDate ? a.appliedAt.toDate() : null;
+    const dateStr = date ? date.toLocaleString('pt-BR') : 'agora mesmo';
+    return `
+    <div class="history-item">
+      <div>
+        <div class="hl">${escapeHtml(a.substanceName)}</div>
+        <div class="date">${dateStr}${a.notes ? ' · ' + escapeHtml(a.notes) : ''}</div>
+      </div>
+      <div class="hr">${fmt(a.mlApplied)} ml<br>${fmt(a.mgApplied)} mg</div>
+    </div>`;
+  }).join('');
+}
+
+/* ============================================================
+   8) LISTENERS EM TEMPO REAL
+============================================================ */
+function escapeHtml(str){
+  const d = document.createElement('div');
+  d.textContent = str ?? '';
+  return d.innerHTML;
+}
+
+if (db) {
+  onSnapshot(collection(db, 'substances'), (snap) => {
+    substances = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderSubstances();
+    refreshSubstanceSelects();
+    renderCycles();
+  });
+
+  onSnapshot(collection(db, 'cycles'), (snap) => {
+    cycles = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderCycles();
+  });
+
+  onSnapshot(query(collection(db, 'applications'), orderBy('appliedAt', 'desc')), (snap) => {
+    applications = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderHistory();
+  });
+} else {
+  renderSubstances();
+  renderCycles();
+  renderHistory();
+  refreshSubstanceSelects();
+}
+</script>
+</body>
+</html>
