@@ -46,7 +46,7 @@
     padding:28px 0 20px;
     margin-bottom:8px;
   }
-  .brand{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;}
+  .brand{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
   .brand .mark{
     font-family:var(--mono);
     font-size:12px;
@@ -166,6 +166,97 @@
   .weekdays input:checked + span{color:var(--bg);}
   .weekdays label:has(input:checked){background:var(--teal);border-color:var(--teal);}
   .weekdays label:has(input:checked) span{color:var(--bg);font-weight:600;}
+
+  .cyc-item-card{
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:10px;
+    margin-top:8px;
+    background:var(--card-hi);
+  }
+  .cyc-item-row{
+    display:flex;
+    gap:8px;
+    align-items:center;
+    margin-top:0;
+  }
+  .cyc-item-row select{flex:2;}
+  .cyc-item-row input{flex:1;min-width:80px;}
+  .cyc-item-row button{
+    flex:none;
+    background:transparent;
+    border:1px solid #5A3733;
+    color:var(--danger);
+    border-radius:6px;
+    width:36px;
+    height:38px;
+    cursor:pointer;
+    font-size:16px;
+    line-height:1;
+  }
+  .weekdays-mini{display:flex;gap:4px;margin-top:8px;flex-wrap:wrap;}
+  .weekdays-mini label{
+    margin:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:36px;
+    height:28px;
+    border:1px solid var(--line);
+    border-radius:5px;
+    background:var(--bg-alt);
+    cursor:pointer;
+    font-family:var(--mono);
+    font-size:10.5px;
+    color:var(--muted);
+  }
+  .weekdays-mini input{display:none;}
+  .weekdays-mini label:has(input:checked){background:var(--teal);border-color:var(--teal);}
+  .weekdays-mini label:has(input:checked) span{color:var(--bg);font-weight:600;}
+
+  .cycle-substances{margin-top:10px;}
+  .cycle-substances .cs-row{
+    padding:7px 0;
+    border-bottom:1px dashed var(--line);
+  }
+  .cycle-substances .cs-row:last-child{border-bottom:none;}
+  .cycle-substances .cs-top{
+    display:flex;
+    justify-content:space-between;
+    font-family:var(--mono);
+    font-size:12.5px;
+  }
+  .cycle-substances .cs-top .cs-dose{color:var(--teal);}
+  .cycle-substances .cs-days{
+    display:flex;gap:3px;margin-top:5px;flex-wrap:wrap;
+  }
+  .cycle-substances .cs-days span{
+    font-family:var(--mono);font-size:10px;
+    background:var(--bg-alt);border:1px solid var(--line);
+    border-radius:3px;padding:1px 5px;color:var(--muted);
+  }
+  .cycle-substances .cs-days span.on{color:var(--teal);border-color:var(--teal-dim);}
+
+  .reg-sub-row{
+    display:flex;
+    gap:10px;
+    align-items:center;
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:10px 12px;
+    margin-top:8px;
+    background:var(--bg-alt);
+  }
+  .reg-sub-row label.chk{
+    display:flex;align-items:center;gap:8px;flex:1;margin:0;
+    text-transform:none;font-family:var(--sans);font-size:14.5px;color:var(--ink);
+    cursor:pointer;
+  }
+  .reg-sub-row input[type=checkbox]{width:18px;height:18px;accent-color:var(--teal);flex:none;}
+  .reg-sub-row .reg-item-ml{width:90px;flex:none;}
+  .reg-sub-row .reg-item-mg{
+    font-family:var(--mono);font-size:12px;color:var(--teal);flex:none;min-width:70px;text-align:right;
+  }
 
   button.btn{
     background:var(--teal);
@@ -309,16 +400,44 @@
 </head>
 <body>
 
-<div class="wrap">
+<!-- TELA DE LOGIN -->
+<div class="wrap" id="login-screen" style="display:none;">
   <header class="top">
     <div class="brand">
       <span class="mark">registro clínico pessoal</span>
     </div>
     <h1>Dosage Logbook</h1>
-    <div class="sub">estoque · ciclos · aplicações registradas em tempo real</div>
+    <div class="sub">entre para acessar seu caderno de doses</div>
   </header>
 
   <div id="config-banner"></div>
+
+  <div class="panel" style="max-width:380px;margin:24px auto 0;">
+    <h2 id="login-title">Entrar <span class="n">// acesso</span></h2>
+    <form id="form-login">
+      <label>E-mail</label>
+      <input type="text" id="login-email" placeholder="voce@email.com" autocomplete="username" required>
+      <label>Senha</label>
+      <input type="text" id="login-password" placeholder="••••••••" autocomplete="current-password" required style="-webkit-text-security:disc;text-security:disc;">
+      <div id="login-error"></div>
+      <button type="submit" class="btn" id="login-submit" style="width:100%;">Entrar</button>
+    </form>
+    <button type="button" class="btn secondary" id="login-toggle" style="width:100%;">Ainda não tenho conta — criar acesso</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="wrap" id="app-screen" style="display:none;">
+  <header class="top">
+    <div class="brand">
+      <span class="mark">registro clínico pessoal</span>
+      <span class="mark" id="user-badge" style="margin-left:auto;cursor:pointer;" title="Sair">sair ↦</span>
+    </div>
+    <h1>Dosage Logbook</h1>
+    <div class="sub">estoque · ciclos · aplicações registradas em tempo real</div>
+  </header>
+
+  <div id="config-banner-app"></div>
 
   <nav class="tabs">
     <button data-tab="substancias" class="active">Substâncias</button>
@@ -337,6 +456,12 @@
             <label>Nome</label>
             <input type="text" id="sub-name" placeholder="Ex: Substância A" required>
           </div>
+          <div>
+            <label>Apelido (opcional)</label>
+            <input type="text" id="sub-nickname" placeholder="Ex: Sub A">
+          </div>
+        </div>
+        <div class="row">
           <div>
             <label>Concentração (mg/ml)</label>
             <input type="number" id="sub-conc" step="any" min="0" placeholder="250" required>
@@ -364,29 +489,15 @@
         <label>Nome do ciclo</label>
         <input type="text" id="cyc-name" placeholder="Ex: Ciclo de manutenção" required>
 
-        <label>Substância</label>
-        <select id="cyc-substance" required></select>
+        <label>Substâncias do ciclo <span style="text-transform:none;color:var(--muted);">— defina os dias de cada uma</span></label>
+        <div id="cyc-items"></div>
+        <button type="button" id="cyc-add-item" class="btn secondary" style="margin-top:4px;">+ Adicionar substância</button>
 
-        <div class="row">
-          <div>
-            <label>Dose por aplicação (ml)</label>
-            <input type="number" id="cyc-dose" step="any" min="0" placeholder="1" required>
-          </div>
+        <div class="row" style="margin-top:14px;">
           <div>
             <label>Horário</label>
             <input type="time" id="cyc-time" required>
           </div>
-        </div>
-
-        <label>Dias da semana</label>
-        <div class="weekdays" id="cyc-days">
-          <label><input type="checkbox" value="0"><span>Dom</span></label>
-          <label><input type="checkbox" value="1"><span>Seg</span></label>
-          <label><input type="checkbox" value="2"><span>Ter</span></label>
-          <label><input type="checkbox" value="3"><span>Qua</span></label>
-          <label><input type="checkbox" value="4"><span>Qui</span></label>
-          <label><input type="checkbox" value="5"><span>Sex</span></label>
-          <label><input type="checkbox" value="6"><span>Sáb</span></label>
         </div>
 
         <label>Observações (opcional)</label>
@@ -407,18 +518,21 @@
     <div class="panel">
       <h2>Registrar aplicação <span class="n">// nova entrada</span></h2>
       <form id="form-application">
-        <label>Substância</label>
-        <select id="reg-substance" required></select>
+        <label>Ciclo</label>
+        <select id="reg-cycle" required></select>
 
-        <label>Quantidade aplicada (ml)</label>
-        <input type="number" id="reg-ml" step="any" min="0" placeholder="1" required>
+        <label>Substâncias de hoje <span style="text-transform:none;color:var(--muted);">— marque as que forem aplicar</span></label>
+        <div id="reg-substances-list"></div>
+
+        <label>Data e hora</label>
+        <input type="datetime-local" id="reg-datetime" required>
 
         <label>Observações (opcional)</label>
         <textarea id="reg-notes" rows="2" placeholder="Local da aplicação, sensações, etc."></textarea>
 
         <div class="calc-readout">
           <div class="big" id="reg-mg-display">0 mg</div>
-          <div class="label">dose calculada com base no cadastro</div>
+          <div class="label">dose total calculada com base no cadastro</div>
         </div>
 
         <div id="reg-stock-warning"></div>
@@ -445,41 +559,138 @@ import {
   getFirestore, collection, addDoc, doc, updateDoc, deleteDoc,
   onSnapshot, query, orderBy, serverTimestamp, increment
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+import {
+  getAuth, onAuthStateChanged, signInWithEmailAndPassword,
+  createUserWithEmailAndPassword, signOut
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 
 /* ============================================================
    1) CONFIGURAÇÃO DO FIREBASE
    Substitua os valores abaixo pelos do SEU projeto Firebase.
    Console: https://console.firebase.google.com
    Crie um projeto → Adicionar app da Web → copie o firebaseConfig.
-   Ative o Firestore Database (modo produção) e configure as regras
-   de segurança (veja o README que acompanha este arquivo).
+   Ative o Firestore Database e o Authentication (método E-mail/Senha)
+   e configure as regras de segurança (veja o README que acompanha
+   este arquivo).
 ============================================================ */
-  const firebaseConfig = {
-    apiKey: "AIzaSyATeEezWTqe_5oo6p2XYz3Zan3aSqh99wI",
-    authDomain: "dosagelogbook.firebaseapp.com",
-    projectId: "dosagelogbook",
-    storageBucket: "dosagelogbook.firebasestorage.app",
-    messagingSenderId: "635725147957",
-    appId: "1:635725147957:web:7d2bdbe07b81cff25d267c"
-  };
+const firebaseConfig = {
+  apiKey: "SUA_API_KEY",
+  authDomain: "SEU_PROJETO.firebaseapp.com",
+  projectId: "SEU_PROJETO",
+  storageBucket: "SEU_PROJETO.appspot.com",
+  messagingSenderId: "SEU_SENDER_ID",
+  appId: "SEU_APP_ID"
+};
 
 const isConfigured = !Object.values(firebaseConfig).some(v => String(v).startsWith("SEU_") || String(v).startsWith("SUA_"));
 
 const configBanner = document.getElementById('config-banner');
+const configBannerApp = document.getElementById('config-banner-app');
 let db = null;
+let auth = null;
 
-if (!isConfigured) {
-  configBanner.innerHTML = `<div class="banner err">
+const configErrorHtml = `<div class="banner err">
     Configuração do Firebase pendente. Edite o objeto <b>firebaseConfig</b> no início do
     &lt;script&gt; deste arquivo com as chaves do seu projeto antes de usar o app.
   </div>`;
+
+if (!isConfigured) {
+  configBanner.innerHTML = configErrorHtml;
+  configBannerApp.innerHTML = configErrorHtml;
+  document.getElementById('login-submit').disabled = true;
 } else {
   try {
     const app = initializeApp(firebaseConfig);
     db = getFirestore(app);
+    auth = getAuth(app);
   } catch (e) {
-    configBanner.innerHTML = `<div class="banner err">Erro ao iniciar o Firebase: ${e.message}</div>`;
+    const errHtml = `<div class="banner err">Erro ao iniciar o Firebase: ${e.message}</div>`;
+    configBanner.innerHTML = errHtml;
+    configBannerApp.innerHTML = errHtml;
   }
+}
+
+/* ============================================================
+   1b) AUTENTICAÇÃO / TELA DE LOGIN
+============================================================ */
+const loginScreen = document.getElementById('login-screen');
+const appScreen = document.getElementById('app-screen');
+const formLogin = document.getElementById('form-login');
+const loginTitle = document.getElementById('login-title');
+const loginToggle = document.getElementById('login-toggle');
+const loginError = document.getElementById('login-error');
+const loginSubmit = document.getElementById('login-submit');
+const userBadge = document.getElementById('user-badge');
+
+let mode = 'login'; // 'login' | 'signup'
+
+loginToggle.addEventListener('click', () => {
+  mode = mode === 'login' ? 'signup' : 'login';
+  if (mode === 'signup') {
+    loginTitle.innerHTML = 'Criar acesso <span class="n">// primeira vez</span>';
+    loginSubmit.textContent = 'Criar conta';
+    loginToggle.textContent = 'Já tenho conta — entrar';
+  } else {
+    loginTitle.innerHTML = 'Entrar <span class="n">// acesso</span>';
+    loginSubmit.textContent = 'Entrar';
+    loginToggle.textContent = 'Ainda não tenho conta — criar acesso';
+  }
+  loginError.innerHTML = '';
+});
+
+formLogin.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (!auth) return;
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  loginError.innerHTML = '';
+  loginSubmit.disabled = true;
+  try {
+    if (mode === 'signup') {
+      await createUserWithEmailAndPassword(auth, email, password);
+    } else {
+      await signInWithEmailAndPassword(auth, email, password);
+    }
+  } catch (err) {
+    loginError.innerHTML = `<div class="banner err">${translateAuthError(err.code)}</div>`;
+  } finally {
+    loginSubmit.disabled = false;
+  }
+});
+
+userBadge.addEventListener('click', () => {
+  if (auth) signOut(auth);
+});
+
+function translateAuthError(code){
+  const map = {
+    'auth/invalid-email': 'E-mail inválido.',
+    'auth/user-not-found': 'Usuário não encontrado.',
+    'auth/wrong-password': 'Senha incorreta.',
+    'auth/invalid-credential': 'E-mail ou senha incorretos.',
+    'auth/email-already-in-use': 'Já existe uma conta com esse e-mail.',
+    'auth/weak-password': 'A senha precisa ter pelo menos 6 caracteres.',
+    'auth/missing-password': 'Informe a senha.'
+  };
+  return map[code] || 'Não foi possível concluir. Tente novamente.';
+}
+
+if (auth) {
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      loginScreen.style.display = 'none';
+      appScreen.style.display = 'block';
+      userBadge.textContent = `${user.email} · sair ↦`;
+      formLogin.reset();
+      startDataListeners();
+    } else {
+      stopDataListeners();
+      appScreen.style.display = 'none';
+      loginScreen.style.display = 'block';
+    }
+  });
+} else {
+  loginScreen.style.display = 'block';
 }
 
 /* ============================================================
@@ -518,12 +729,14 @@ formSubstance.addEventListener('submit', async (e) => {
   e.preventDefault();
   if (!db) return;
   const name = document.getElementById('sub-name').value.trim();
+  const nickname = document.getElementById('sub-nickname').value.trim();
   const conc = parseFloat(document.getElementById('sub-conc').value);
   const vol = parseFloat(document.getElementById('sub-vol').value);
   if (!name || isNaN(conc) || isNaN(vol)) return;
 
   await addDoc(collection(db, 'substances'), {
     name,
+    nickname,
     concentrationMgMl: conc,
     availableMl: vol,
     startMl: vol,
@@ -545,7 +758,7 @@ function renderSubstances(){
     <div class="substance-card">
       <div class="vial ${stockLevelClass(s)}"><div class="fill" style="height:${pct}%"></div></div>
       <div class="sub-info">
-        <div class="name">${escapeHtml(s.name)}</div>
+        <div class="name">${escapeHtml(s.name)}${s.nickname ? ` <span style="color:var(--teal);font-weight:400;">"${escapeHtml(s.nickname)}"</span>` : ''}</div>
         <div class="meta">${fmt(s.concentrationMgMl)} mg/ml</div>
         <div class="stock">disponível: <b>${fmt(s.availableMl)} ml</b> de ${fmt(s.startMl)} ml</div>
       </div>
@@ -564,133 +777,307 @@ function renderSubstances(){
   });
 }
 
+function substanceOptionsHtml(){
+  if (!substances.length) return `<option value="">Cadastre uma substância primeiro</option>`;
+  return `<option value="">Selecione...</option>` + substances.map(s =>
+    `<option value="${s.id}">${escapeHtml(s.name)}${s.nickname ? ' ("' + escapeHtml(s.nickname) + '")' : ''} — ${fmt(s.concentrationMgMl)} mg/ml (${fmt(s.availableMl)} ml disp.)</option>`
+  ).join('');
+}
+
 function refreshSubstanceSelects(){
-  const selects = [document.getElementById('cyc-substance'), document.getElementById('reg-substance')];
-  selects.forEach(sel => {
+  document.querySelectorAll('.cyc-item-substance').forEach(sel => {
     const current = sel.value;
-    sel.innerHTML = substances.length
-      ? substances.map(s => `<option value="${s.id}">${escapeHtml(s.name)} — ${fmt(s.concentrationMgMl)} mg/ml (${fmt(s.availableMl)} ml disp.)</option>`).join('')
-      : `<option value="">Cadastre uma substância primeiro</option>`;
+    sel.innerHTML = substanceOptionsHtml();
     if ([...sel.options].some(o => o.value === current)) sel.value = current;
   });
-  updateCalcReadout();
+  refreshCycleSelect();
+}
+
+function weekdaysMiniHtml(selectedDays){
+  return WEEKDAY_LABELS.map((label, i) => `
+    <label><input type="checkbox" value="${i}" ${selectedDays.includes(i) ? 'checked' : ''}><span>${label}</span></label>
+  `).join('');
 }
 
 /* ============================================================
-   5) CICLOS
+   5) CICLOS (cada ciclo pode ter várias substâncias; cada
+   substância tem sua própria dose e seus próprios dias)
 ============================================================ */
 const formCycle = document.getElementById('form-cycle');
+const cycItemsBox = document.getElementById('cyc-items');
+let cycItems = [];
+let cycItemUid = 0;
+
+function addCycItem(){
+  cycItems.push({ uid: ++cycItemUid, substanceId: '', doseMl: '', days: [] });
+  renderCycItems();
+}
+
+function removeCycItem(uid){
+  cycItems = cycItems.filter(it => it.uid !== uid);
+  if (!cycItems.length) { addCycItem(); return; }
+  renderCycItems();
+}
+
+function renderCycItems(){
+  cycItemsBox.innerHTML = cycItems.map(it => `
+    <div class="cyc-item-card" data-uid="${it.uid}">
+      <div class="cyc-item-row">
+        <select class="cyc-item-substance">${substanceOptionsHtml()}</select>
+        <input type="number" class="cyc-item-dose" step="any" min="0" placeholder="dose ml" value="${it.doseMl}">
+        <button type="button" class="cyc-item-remove" title="Remover substância">×</button>
+      </div>
+      <div class="weekdays-mini cyc-item-days">${weekdaysMiniHtml(it.days)}</div>
+    </div>
+  `).join('');
+
+  cycItemsBox.querySelectorAll('.cyc-item-card').forEach(card => {
+    const uid = parseInt(card.dataset.uid);
+    const item = cycItems.find(i => i.uid === uid);
+    const sel = card.querySelector('.cyc-item-substance');
+    sel.value = item.substanceId;
+    sel.addEventListener('change', () => { item.substanceId = sel.value; });
+    const doseInput = card.querySelector('.cyc-item-dose');
+    doseInput.addEventListener('input', () => { item.doseMl = doseInput.value; });
+    card.querySelectorAll('.cyc-item-days input').forEach(chk => {
+      chk.addEventListener('change', () => {
+        const v = parseInt(chk.value);
+        item.days = chk.checked ? [...item.days, v] : item.days.filter(d => d !== v);
+      });
+    });
+    card.querySelector('.cyc-item-remove').addEventListener('click', () => removeCycItem(uid));
+  });
+}
+
+document.getElementById('cyc-add-item').addEventListener('click', addCycItem);
+addCycItem();
+
 formCycle.addEventListener('submit', async (e) => {
   e.preventDefault();
   if (!db) return;
   const name = document.getElementById('cyc-name').value.trim();
-  const substanceId = document.getElementById('cyc-substance').value;
-  const dose = parseFloat(document.getElementById('cyc-dose').value);
   const time = document.getElementById('cyc-time').value;
   const notes = document.getElementById('cyc-notes').value.trim();
-  const days = [...document.querySelectorAll('#cyc-days input:checked')].map(i => parseInt(i.value));
-  if (!name || !substanceId || isNaN(dose) || !time || !days.length) {
-    alert('Preencha todos os campos obrigatórios e selecione ao menos um dia.');
+  const items = cycItems
+    .filter(it => it.substanceId && parseFloat(it.doseMl) > 0 && it.days.length)
+    .map(it => ({ substanceId: it.substanceId, doseMl: parseFloat(it.doseMl), days: [...it.days].sort() }));
+
+  if (!name || !time || !items.length) {
+    alert('Preencha nome, horário, e ao menos uma substância com dose e pelo menos um dia marcado.');
     return;
   }
 
   await addDoc(collection(db, 'cycles'), {
-    name, substanceId, doseMl: dose, time, days, notes,
+    name, items, time, notes,
     createdAt: serverTimestamp()
   });
   formCycle.reset();
-  document.querySelectorAll('#cyc-days input').forEach(i => i.checked = false);
+  cycItems = [];
+  addCycItem();
 });
+
+function getCycleItems(c){
+  if (Array.isArray(c.items) && c.items.length) {
+    // compatibilidade com ciclos antigos, sem dias por substância
+    return c.items.map(it => ({ ...it, days: Array.isArray(it.days) ? it.days : (c.days || []) }));
+  }
+  if (c.substanceId) return [{ substanceId: c.substanceId, doseMl: c.doseMl, days: c.days || [] }]; // formato ainda mais antigo
+  return [];
+}
 
 function renderCycles(){
   const list = document.getElementById('cycle-list');
   document.getElementById('cyc-count').textContent = cycles.length ? `// ${cycles.length}` : '';
   if (!cycles.length){
     list.innerHTML = `<div class="empty-state">Nenhum ciclo cadastrado ainda.</div>`;
-    return;
-  }
-  list.innerHTML = cycles.map(c => {
-    const sub = substances.find(s => s.id === c.substanceId);
-    const daysPills = WEEKDAY_LABELS.map((label, i) =>
-      `<span class="${c.days.includes(i) ? 'on' : ''}">${label}</span>`).join('');
-    return `
-    <div class="cycle-card">
-      <div class="top">
-        <div>
-          <div class="name">${escapeHtml(c.name)}</div>
-          <div class="meta">${sub ? escapeHtml(sub.name) : '(substância removida)'} · ${fmt(c.doseMl)} ml às ${c.time}</div>
+  } else {
+    list.innerHTML = cycles.map(c => {
+      const items = getCycleItems(c);
+      const subRows = items.map(it => {
+        const sub = substances.find(s => s.id === it.substanceId);
+        const label = sub ? `${sub.name}${sub.nickname ? ' ("' + sub.nickname + '")' : ''}` : '(substância removida)';
+        const dayPills = WEEKDAY_LABELS.map((lb, i) =>
+          `<span class="${it.days.includes(i) ? 'on' : ''}">${lb}</span>`).join('');
+        return `
+        <div class="cs-row">
+          <div class="cs-top"><span>${escapeHtml(label)}</span><span class="cs-dose">${fmt(it.doseMl)} ml</span></div>
+          <div class="cs-days">${dayPills}</div>
+        </div>`;
+      }).join('');
+      return `
+      <div class="cycle-card">
+        <div class="top">
+          <div>
+            <div class="name">${escapeHtml(c.name)}</div>
+            <div class="meta">às ${c.time}</div>
+          </div>
+          <button class="btn danger" data-del-cyc="${c.id}">Remover</button>
         </div>
-        <button class="btn danger" data-del-cyc="${c.id}">Remover</button>
-      </div>
-      <div class="days-pill">${daysPills}</div>
-      ${c.notes ? `<div class="meta" style="margin-top:8px;">${escapeHtml(c.notes)}</div>` : ''}
-    </div>`;
-  }).join('');
+        <div class="cycle-substances">${subRows}</div>
+        ${c.notes ? `<div class="meta" style="margin-top:8px;">${escapeHtml(c.notes)}</div>` : ''}
+      </div>`;
+    }).join('');
 
-  list.querySelectorAll('[data-del-cyc]').forEach(b => {
-    b.addEventListener('click', async () => {
-      if (confirm('Remover este ciclo?')) {
-        await deleteDoc(doc(db, 'cycles', b.dataset.delCyc));
-      }
+    list.querySelectorAll('[data-del-cyc]').forEach(b => {
+      b.addEventListener('click', async () => {
+        if (confirm('Remover este ciclo?')) {
+          await deleteDoc(doc(db, 'cycles', b.dataset.delCyc));
+        }
+      });
     });
-  });
+  }
+
+  refreshCycleSelect();
 }
 
 /* ============================================================
-   6) REGISTRAR APLICAÇÃO
+   6) REGISTRAR APLICAÇÃO (ciclo → substâncias agendadas para
+   hoje → dose automática, várias substâncias por aplicação)
 ============================================================ */
-const regSubstanceSel = document.getElementById('reg-substance');
-const regMlInput = document.getElementById('reg-ml');
+const regCycleSel = document.getElementById('reg-cycle');
+const regSubstancesList = document.getElementById('reg-substances-list');
+const regDatetimeInput = document.getElementById('reg-datetime');
+
+function nowLocalDatetimeValue(){
+  const d = new Date();
+  d.setSeconds(0, 0);
+  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+  return d.toISOString().slice(0, 16);
+}
+regDatetimeInput.value = nowLocalDatetimeValue();
+
+function refreshCycleSelect(){
+  const current = regCycleSel.value;
+  regCycleSel.innerHTML = cycles.length
+    ? cycles.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('')
+    : `<option value="">Cadastre um ciclo primeiro</option>`;
+  if ([...regCycleSel.options].some(o => o.value === current)) {
+    regCycleSel.value = current;
+  }
+  refreshRegSubstancesList();
+}
+
+function refreshRegSubstancesList(){
+  const cycle = cycles.find(c => c.id === regCycleSel.value);
+  const today = new Date().getDay(); // 0=Dom ... 6=Sáb, mesmo mapeamento usado nos ciclos
+  const items = cycle ? getCycleItems(cycle).filter(it => it.days.includes(today)) : [];
+
+  if (!items.length) {
+    regSubstancesList.innerHTML = `<div class="empty-state">${cycle ? 'Nenhuma substância deste ciclo está agendada para hoje.' : 'Selecione um ciclo.'}</div>`;
+    updateCalcReadout();
+    return;
+  }
+
+  regSubstancesList.innerHTML = items.map((it, idx) => {
+    const sub = substances.find(s => s.id === it.substanceId);
+    const label = sub ? `${sub.name}${sub.nickname ? ' ("' + sub.nickname + '")' : ''}` : '(substância removida)';
+    return `
+    <div class="reg-sub-row" data-substance-id="${it.substanceId}">
+      <label class="chk">
+        <input type="checkbox" class="reg-item-check" checked ${sub ? '' : 'disabled'}>
+        ${escapeHtml(label)}
+      </label>
+      <input type="number" class="reg-item-ml" step="any" min="0" value="${it.doseMl}">
+      <span class="reg-item-mg">0 mg</span>
+    </div>`;
+  }).join('');
+
+  regSubstancesList.querySelectorAll('.reg-sub-row').forEach(row => {
+    row.querySelector('.reg-item-check').addEventListener('change', updateCalcReadout);
+    row.querySelector('.reg-item-ml').addEventListener('input', updateCalcReadout);
+  });
+
+  updateCalcReadout();
+}
+
+regCycleSel.addEventListener('change', refreshRegSubstancesList);
 
 function updateCalcReadout(){
-  const sub = substances.find(s => s.id === regSubstanceSel.value);
-  const ml = parseFloat(regMlInput.value) || 0;
-  const mg = sub ? sub.concentrationMgMl * ml : 0;
-  document.getElementById('reg-mg-display').textContent = `${fmt(mg)} mg`;
+  let totalMg = 0;
+  let hasWarning = false;
+  const warnings = [];
+
+  regSubstancesList.querySelectorAll('.reg-sub-row').forEach(row => {
+    const substanceId = row.dataset.substanceId;
+    const sub = substances.find(s => s.id === substanceId);
+    const checked = row.querySelector('.reg-item-check').checked;
+    const ml = parseFloat(row.querySelector('.reg-item-ml').value) || 0;
+    const mg = sub ? sub.concentrationMgMl * ml : 0;
+    row.querySelector('.reg-item-mg').textContent = `${fmt(mg)} mg`;
+    if (checked && sub) {
+      totalMg += mg;
+      if (ml > sub.availableMl) {
+        hasWarning = true;
+        warnings.push(`${sub.name}: disponível ${fmt(sub.availableMl)} ml`);
+      }
+    }
+  });
+
+  document.getElementById('reg-mg-display').textContent = `${fmt(totalMg)} mg`;
 
   const warnBox = document.getElementById('reg-stock-warning');
   const submitBtn = document.getElementById('reg-submit');
-  if (sub && ml > sub.availableMl) {
-    warnBox.innerHTML = `<div class="banner warn">Quantidade maior que o disponível em estoque (${fmt(sub.availableMl)} ml).</div>`;
+  if (hasWarning) {
+    warnBox.innerHTML = `<div class="banner warn">Quantidade maior que o disponível em estoque — ${warnings.map(escapeHtml).join(' · ')}.</div>`;
     submitBtn.disabled = true;
   } else {
     warnBox.innerHTML = '';
     submitBtn.disabled = false;
   }
 }
-regSubstanceSel.addEventListener('change', updateCalcReadout);
-regMlInput.addEventListener('input', updateCalcReadout);
 
 const formApplication = document.getElementById('form-application');
 formApplication.addEventListener('submit', async (e) => {
   e.preventDefault();
   if (!db) return;
-  const substanceId = regSubstanceSel.value;
-  const ml = parseFloat(regMlInput.value);
+  const datetimeVal = regDatetimeInput.value;
   const notes = document.getElementById('reg-notes').value.trim();
-  const sub = substances.find(s => s.id === substanceId);
-  if (!sub || isNaN(ml) || ml <= 0) return;
-  if (ml > sub.availableMl) {
-    alert('Quantidade aplicada maior que o estoque disponível.');
+  const cycle = cycles.find(c => c.id === regCycleSel.value);
+  if (!datetimeVal) return;
+
+  const entries = [];
+  regSubstancesList.querySelectorAll('.reg-sub-row').forEach(row => {
+    const checked = row.querySelector('.reg-item-check').checked;
+    if (!checked) return;
+    const substanceId = row.dataset.substanceId;
+    const sub = substances.find(s => s.id === substanceId);
+    const ml = parseFloat(row.querySelector('.reg-item-ml').value);
+    if (sub && ml > 0) entries.push({ sub, ml });
+  });
+
+  if (!entries.length) {
+    alert('Marque ao menos uma substância para registrar.');
     return;
   }
-  const mg = sub.concentrationMgMl * ml;
+  const insufficient = entries.filter(en => en.ml > en.sub.availableMl);
+  if (insufficient.length) {
+    alert('Quantidade aplicada maior que o estoque disponível para: ' + insufficient.map(en => en.sub.name).join(', '));
+    return;
+  }
 
-  await addDoc(collection(db, 'applications'), {
-    substanceId,
-    substanceName: sub.name,
-    mlApplied: ml,
-    mgApplied: mg,
-    notes,
-    appliedAt: serverTimestamp()
-  });
+  const appliedAtDate = new Date(datetimeVal);
 
-  await updateDoc(doc(db, 'substances', substanceId), {
-    availableMl: increment(-ml)
-  });
+  for (const { sub, ml } of entries) {
+    const mg = sub.concentrationMgMl * ml;
+    await addDoc(collection(db, 'applications'), {
+      substanceId: sub.id,
+      substanceName: sub.name,
+      substanceNickname: sub.nickname || '',
+      cycleId: cycle ? cycle.id : null,
+      cycleName: cycle ? cycle.name : null,
+      mlApplied: ml,
+      mgApplied: mg,
+      notes,
+      appliedAt: appliedAtDate
+    });
+    await updateDoc(doc(db, 'substances', sub.id), {
+      availableMl: increment(-ml)
+    });
+  }
 
   formApplication.reset();
-  updateCalcReadout();
+  regDatetimeInput.value = nowLocalDatetimeValue();
+  refreshRegSubstancesList();
 });
 
 /* ============================================================
@@ -709,8 +1096,8 @@ function renderHistory(){
     return `
     <div class="history-item">
       <div>
-        <div class="hl">${escapeHtml(a.substanceName)}</div>
-        <div class="date">${dateStr}${a.notes ? ' · ' + escapeHtml(a.notes) : ''}</div>
+        <div class="hl">${escapeHtml(a.substanceName)}${a.substanceNickname ? ` <span style="color:var(--teal);font-weight:400;">"${escapeHtml(a.substanceNickname)}"</span>` : ''}</div>
+        <div class="date">${dateStr}${a.cycleName ? ' · ' + escapeHtml(a.cycleName) : ''}${a.notes ? ' · ' + escapeHtml(a.notes) : ''}</div>
       </div>
       <div class="hr">${fmt(a.mlApplied)} ml<br>${fmt(a.mgApplied)} mg</div>
     </div>`;
@@ -718,7 +1105,7 @@ function renderHistory(){
 }
 
 /* ============================================================
-   8) LISTENERS EM TEMPO REAL
+   8) LISTENERS EM TEMPO REAL (ativos apenas com usuário logado)
 ============================================================ */
 function escapeHtml(str){
   const d = document.createElement('div');
@@ -726,28 +1113,35 @@ function escapeHtml(str){
   return d.innerHTML;
 }
 
-if (db) {
-  onSnapshot(collection(db, 'substances'), (snap) => {
+let unsubscribers = [];
+
+function startDataListeners(){
+  if (!db) {
+    renderSubstances(); renderCycles(); renderHistory(); refreshSubstanceSelects();
+    return;
+  }
+  unsubscribers.push(onSnapshot(collection(db, 'substances'), (snap) => {
     substances = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     renderSubstances();
     refreshSubstanceSelects();
     renderCycles();
-  });
+  }));
 
-  onSnapshot(collection(db, 'cycles'), (snap) => {
+  unsubscribers.push(onSnapshot(collection(db, 'cycles'), (snap) => {
     cycles = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     renderCycles();
-  });
+  }));
 
-  onSnapshot(query(collection(db, 'applications'), orderBy('appliedAt', 'desc')), (snap) => {
+  unsubscribers.push(onSnapshot(query(collection(db, 'applications'), orderBy('appliedAt', 'desc')), (snap) => {
     applications = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     renderHistory();
-  });
-} else {
-  renderSubstances();
-  renderCycles();
-  renderHistory();
-  refreshSubstanceSelects();
+  }));
+}
+
+function stopDataListeners(){
+  unsubscribers.forEach(unsub => unsub());
+  unsubscribers = [];
+  substances = []; cycles = []; applications = [];
 }
 </script>
 </body>
