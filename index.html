@@ -291,11 +291,11 @@
   .vial .fill{
     position:absolute;
     bottom:0;left:0;right:0;
-    background:linear-gradient(180deg, var(--teal), var(--teal-dim));
+    background:var(--teal);
     transition:height .4s ease;
   }
-  .vial.low .fill{background:linear-gradient(180deg, var(--amber), #8a6428);}
-  .vial.empty .fill{background:linear-gradient(180deg, var(--danger), #7a3229);}
+  .vial.low .fill{background:var(--amber);}
+  .vial.empty .fill{background:var(--danger);}
   .sub-info{flex:1;}
   .sub-info .name{font-weight:600;font-size:15px;}
   .sub-info .meta{font-family:var(--mono);font-size:12.5px;color:var(--muted);margin-top:4px;}
@@ -323,16 +323,21 @@
 
   .calc-readout{
     margin-top:16px;
-    border:1px dashed var(--teal-dim);
-    border-radius:8px;
+    border:1px solid var(--teal-dim);
+    border-radius:12px;
     padding:16px;
-    text-align:center;
     background:var(--ok-tint);
   }
+  .calc-readout .calc-totals{
+    display:flex;
+    justify-content:center;
+    gap:36px;
+  }
+  .calc-readout .calc-item{text-align:center;}
   .calc-readout .big{
     font-family:var(--mono);
-    font-size:34px;
-    font-weight:600;
+    font-size:30px;
+    font-weight:700;
     color:var(--teal);
     line-height:1;
   }
@@ -366,6 +371,29 @@
   .history-item .hr{font-family:var(--mono);color:var(--teal);font-size:13px;text-align:right;}
   .history-item .date{font-family:var(--mono);color:var(--muted);font-size:11.5px;}
 
+  .hist-protocol{margin-bottom:24px;}
+  .hist-protocol:last-child{margin-bottom:0;}
+  .hist-protocol-title{
+    font-family:var(--display);font-size:15px;font-weight:700;
+    margin-bottom:12px;padding-bottom:9px;border-bottom:2px solid var(--line);
+    display:flex;align-items:center;gap:8px;
+  }
+  .hist-protocol-title svg{width:16px;height:16px;stroke:var(--teal);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none;}
+  .hist-day{margin-bottom:14px;}
+  .hist-day:last-child{margin-bottom:0;}
+  .hist-day-label{
+    font-family:var(--mono);font-size:11px;color:var(--muted);
+    letter-spacing:.05em;margin-bottom:4px;text-transform:uppercase;
+  }
+
+  .badge{
+    display:inline-flex;align-items:center;
+    font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;
+    background:var(--ok-tint);color:var(--teal);
+    border:1px solid var(--teal-dim);border-radius:20px;
+    padding:3px 10px;
+  }
+
   .banner{
     font-family:var(--mono);
     font-size:12.5px;
@@ -387,15 +415,15 @@
   /* ===================== DASHBOARD ===================== */
   .dash-grid{
     display:grid;
-    grid-template-columns:repeat(auto-fit, minmax(230px, 1fr));
+    grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));
     gap:14px;
     margin-bottom:18px;
   }
   .dash-card{
-    background:linear-gradient(165deg, var(--card-hi), var(--card) 65%);
+    background:var(--card);
     border:1px solid var(--line);
     border-radius:16px;
-    padding:18px;
+    padding:20px;
     box-shadow:var(--shadow-sm);
   }
   .dash-card.wide{grid-column:1 / -1;}
@@ -413,13 +441,28 @@
     width:15px;height:15px;stroke:var(--teal);fill:none;
     stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none;
   }
+  .dash-card .badge{
+    margin-left:auto;
+    font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;
+    background:var(--ok-tint);color:var(--teal);
+    border:1px solid var(--teal-dim);border-radius:20px;
+    padding:3px 9px;text-transform:none;
+  }
   .dash-card .big-value{
     font-family:var(--display);
-    font-size:19px;
-    font-weight:600;
-    margin-top:12px;
-    line-height:1.35;
+    font-size:20px;
+    font-weight:700;
+    margin-top:14px;
+    line-height:1.3;
   }
+  .dash-card .info-rows{margin-top:12px;display:flex;flex-direction:column;gap:8px;}
+  .dash-card .info-row{
+    display:flex;justify-content:space-between;align-items:baseline;gap:10px;
+    font-size:13px;padding-bottom:8px;border-bottom:1px solid var(--line);
+  }
+  .dash-card .info-row:last-child{border-bottom:none;padding-bottom:0;}
+  .dash-card .info-row .il{color:var(--muted);}
+  .dash-card .info-row .ir{font-family:var(--mono);font-weight:600;text-align:right;}
   .dash-card .sub-value{
     font-family:var(--mono);
     font-size:12px;
@@ -427,37 +470,55 @@
     margin-top:5px;
     line-height:1.5;
   }
-  .dash-card .stat-row{display:flex;gap:36px;margin-top:12px;flex-wrap:wrap;}
+  .dash-card .stat-row{display:flex;gap:32px;margin-top:14px;flex-wrap:wrap;}
   .dash-card .stat-num{
     font-family:var(--mono);
-    font-size:28px;
+    font-size:26px;
     color:var(--teal);
-    font-weight:600;
+    font-weight:700;
     line-height:1;
   }
+  .dash-card .stat-row .sub-value{margin-top:6px;}
   .dash-card .cta{
     display:inline-flex;
     align-items:center;
     gap:5px;
-    margin-top:12px;
+    margin-top:14px;
     font-family:var(--mono);
     font-size:11.5px;
     color:var(--teal);
     cursor:pointer;
     text-decoration:none;
   }
-  .dash-stock-row{
-    display:flex;
-    align-items:center;
-    gap:12px;
-    padding:9px 0;
-    border-bottom:1px dashed var(--line);
+
+  /* mini gráfico de barras (últimos 7 dias) */
+  .chart-bars{
+    display:flex;align-items:flex-end;gap:8px;
+    height:64px;margin-top:16px;
   }
+  .chart-bars .bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end;}
+  .chart-bars .bar{
+    width:100%;max-width:26px;border-radius:4px 4px 0 0;
+    background:var(--card-hi);
+    position:relative;min-height:3px;
+  }
+  .chart-bars .bar .fill{
+    position:absolute;bottom:0;left:0;right:0;
+    background:var(--teal);border-radius:4px 4px 0 0;
+    min-height:3px;
+  }
+  .chart-bars .bar-label{font-family:var(--mono);font-size:9.5px;color:var(--muted);}
+
+  .dash-stock-row{padding:10px 0;border-bottom:1px solid var(--line);}
   .dash-stock-row:last-child{border-bottom:none;}
-  .vial.mini{width:15px;height:32px;}
-  .dsr-info{flex:1;min-width:0;}
+  .dash-stock-row .dsr-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:7px;}
   .dsr-name{font-weight:600;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .dsr-meta{font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-top:2px;}
+  .dsr-meta{font-family:var(--mono);font-size:11.5px;color:var(--muted);flex:none;}
+  .stock-bar{width:100%;height:7px;border-radius:4px;background:var(--card-hi);overflow:hidden;}
+  .stock-bar .fill{height:100%;background:var(--teal);border-radius:4px;transition:width .4s ease;}
+  .stock-bar.low .fill{background:var(--amber);}
+  .stock-bar.empty .fill{background:var(--danger);}
+
 
   /* ===================== BOTTOM NAV ===================== */
   nav.bottom-nav{
@@ -552,7 +613,6 @@
   @media (min-width: 640px){
     body.logged-in{padding-bottom:24px;}
     nav.bottom-nav{display:none !important;}
-    .fab{display:none !important;}
     .top-nav-desktop{display:flex !important;}
   }
 
@@ -584,6 +644,50 @@
   .top-nav-desktop button:last-child{border-right:none;}
   .top-nav-desktop button:hover{color:var(--ink);background:var(--card-hi);}
   .top-nav-desktop button.active{color:var(--bg);background:var(--teal);font-weight:600;}
+
+  /* ===================== MODAIS DE CADASTRO ===================== */
+  .modal-overlay{
+    position:fixed;inset:0;
+    background:rgba(15,20,32,.5);
+    display:none;
+    align-items:flex-end;
+    justify-content:center;
+    z-index:60;
+    padding:0;
+  }
+  .modal-overlay.open{display:flex;}
+  .modal-sheet{
+    width:100%;max-width:560px;
+    max-height:92vh;
+    background:var(--bg);
+    border-radius:22px 22px 0 0;
+    display:flex;flex-direction:column;
+    animation:sheetUp .22s ease;
+    box-shadow:var(--shadow-md);
+  }
+  .modal-header{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:16px 18px;
+    border-bottom:1px solid var(--line);
+    flex:none;
+  }
+  .modal-header h2{margin:0;font-family:var(--display);font-size:18px;font-weight:700;}
+  .modal-close{
+    width:36px;height:36px;border-radius:10px;border:1px solid var(--line);
+    background:var(--bg-alt);color:var(--muted);cursor:pointer;flex:none;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .modal-close svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;}
+  .modal-body{
+    overflow-y:auto;
+    padding:18px;
+    flex:1;
+    padding-bottom:calc(18px + env(safe-area-inset-bottom));
+  }
+  @media (min-width: 640px){
+    .modal-overlay{align-items:center;padding:24px;}
+    .modal-sheet{border-radius:20px;max-height:86vh;}
+  }
 </style>
 </head>
 <body>
@@ -629,9 +733,6 @@
 
   <nav class="top-nav-desktop">
     <button data-tab="dashboard" class="active"><svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg>Início</button>
-    <button data-tab="substancias"><svg viewBox="0 0 24 24"><path d="M9 3h6M10 3v5l-5.5 9.5A2 2 0 0 0 6.2 21h11.6a2 2 0 0 0 1.7-3L14 8V3"/></svg>Substâncias</button>
-    <button data-tab="ciclos"><svg viewBox="0 0 24 24"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>Ciclos</button>
-    <button data-tab="registrar"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Registrar</button>
     <button data-tab="historico"><svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13"/><path d="M3 6h.01M3 12h.01M3 18h.01"/></svg>Histórico</button>
   </nav>
 
@@ -641,107 +742,12 @@
     <div class="dash-grid">
       <div class="dash-card" id="dash-last"></div>
       <div class="dash-card" id="dash-next"></div>
-      <div class="dash-card wide" id="dash-week"></div>
+      <div class="dash-card" id="dash-cycle"></div>
+      <div class="dash-card" id="dash-week"></div>
       <div class="dash-card wide">
         <div class="kicker"><svg viewBox="0 0 24 24"><path d="M9 3h6M10 3v5l-5.5 9.5A2 2 0 0 0 6.2 21h11.6a2 2 0 0 0 1.7-3L14 8V3"/></svg>estoque de produtos</div>
-        <div id="dash-stock-list" style="margin-top:8px;"></div>
+        <div id="dash-stock-list" style="margin-top:12px;"></div>
       </div>
-    </div>
-  </section>
-
-  <!-- SUBSTÂNCIAS -->
-  <section class="view" id="view-substancias">
-    <div class="panel">
-      <h2>Nova substância <span class="n">// cadastro</span></h2>
-      <form id="form-substance">
-        <div class="row">
-          <div>
-            <label>Nome</label>
-            <input type="text" id="sub-name" placeholder="Ex: Substância A" required>
-          </div>
-          <div>
-            <label>Apelido (opcional)</label>
-            <input type="text" id="sub-nickname" placeholder="Ex: Sub A">
-          </div>
-        </div>
-        <div class="row">
-          <div>
-            <label>Concentração (mg/ml)</label>
-            <input type="number" id="sub-conc" step="any" min="0" placeholder="250" required>
-          </div>
-          <div>
-            <label>Volume disponível (ml)</label>
-            <input type="number" id="sub-vol" step="any" min="0" placeholder="10" required>
-          </div>
-        </div>
-        <button type="submit" class="btn">Cadastrar substância</button>
-      </form>
-    </div>
-
-    <div class="panel">
-      <h2>Estoque <span class="n" id="sub-count"></span></h2>
-      <div id="substance-list"><div class="empty-state">Nenhuma substância cadastrada ainda.</div></div>
-    </div>
-  </section>
-
-  <!-- CICLOS -->
-  <section class="view" id="view-ciclos">
-    <div class="panel">
-      <h2>Novo ciclo <span class="n">// agenda</span></h2>
-      <form id="form-cycle">
-        <label>Nome do ciclo</label>
-        <input type="text" id="cyc-name" placeholder="Ex: Ciclo de manutenção" required>
-
-        <label>Substâncias do ciclo <span style="text-transform:none;color:var(--muted);">— defina os dias de cada uma</span></label>
-        <div id="cyc-items"></div>
-        <button type="button" id="cyc-add-item" class="btn secondary" style="margin-top:4px;">+ Adicionar substância</button>
-
-        <div class="row" style="margin-top:14px;">
-          <div>
-            <label>Horário</label>
-            <input type="time" id="cyc-time" required>
-          </div>
-        </div>
-
-        <label>Observações (opcional)</label>
-        <textarea id="cyc-notes" rows="2" placeholder="Notas do ciclo..."></textarea>
-
-        <button type="submit" class="btn">Cadastrar ciclo</button>
-      </form>
-    </div>
-
-    <div class="panel">
-      <h2>Ciclos definidos <span class="n" id="cyc-count"></span></h2>
-      <div id="cycle-list"><div class="empty-state">Nenhum ciclo cadastrado ainda.</div></div>
-    </div>
-  </section>
-
-  <!-- REGISTRAR -->
-  <section class="view" id="view-registrar">
-    <div class="panel">
-      <h2>Registrar aplicação <span class="n">// nova entrada</span></h2>
-      <form id="form-application">
-        <label>Ciclo</label>
-        <select id="reg-cycle" required></select>
-
-        <label>Substâncias de hoje <span style="text-transform:none;color:var(--muted);">— marque as que forem aplicar</span></label>
-        <div id="reg-substances-list"></div>
-
-        <label>Data e hora</label>
-        <input type="datetime-local" id="reg-datetime" required>
-
-        <label>Observações (opcional)</label>
-        <textarea id="reg-notes" rows="2" placeholder="Local da aplicação, sensações, etc."></textarea>
-
-        <div class="calc-readout">
-          <div class="big" id="reg-mg-display">0 mg</div>
-          <div class="label">dose total calculada com base no cadastro</div>
-        </div>
-
-        <div id="reg-stock-warning"></div>
-
-        <button type="submit" class="btn" id="reg-submit">Registrar aplicação</button>
-      </form>
     </div>
   </section>
 
@@ -754,16 +760,169 @@
   </section>
 </div>
 
+<!-- MODAL: SUBSTÂNCIAS -->
+<div class="modal-overlay" id="modal-substancias">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <h2>Substâncias</h2>
+      <button type="button" class="modal-close" data-close-modal aria-label="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="panel">
+        <h2>Nova substância <span class="n">// cadastro</span></h2>
+        <form id="form-substance">
+          <div class="row">
+            <div>
+              <label>Nome</label>
+              <input type="text" id="sub-name" placeholder="Ex: Substância A" required>
+            </div>
+            <div>
+              <label>Apelido (opcional)</label>
+              <input type="text" id="sub-nickname" placeholder="Ex: Sub A">
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label>Concentração (mg/ml)</label>
+              <input type="number" id="sub-conc" step="any" min="0" placeholder="250" required>
+            </div>
+            <div>
+              <label>Volume disponível (ml)</label>
+              <input type="number" id="sub-vol" step="any" min="0" placeholder="10" required>
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label>Marca (opcional)</label>
+              <input type="text" id="sub-brand" placeholder="Ex: Fabricante X">
+            </div>
+            <div>
+              <label>Data de compra (opcional)</label>
+              <input type="date" id="sub-purchase-date">
+            </div>
+          </div>
+          <button type="submit" class="btn">Cadastrar substância</button>
+        </form>
+      </div>
+
+      <div class="panel">
+        <h2>Estoque <span class="n" id="sub-count"></span></h2>
+        <div id="substance-list"><div class="empty-state">Nenhuma substância cadastrada ainda.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: CICLOS -->
+<div class="modal-overlay" id="modal-ciclos">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <h2>Ciclos</h2>
+      <button type="button" class="modal-close" data-close-modal aria-label="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="panel">
+        <h2>Novo ciclo <span class="n">// agenda</span></h2>
+        <form id="form-cycle">
+          <label>Nome do ciclo</label>
+          <input type="text" id="cyc-name" placeholder="Ex: Ciclo de manutenção" required>
+
+          <label>Substâncias do ciclo <span style="text-transform:none;color:var(--muted);">— defina os dias de cada uma</span></label>
+          <div id="cyc-items"></div>
+          <button type="button" id="cyc-add-item" class="btn secondary" style="margin-top:4px;">+ Adicionar substância</button>
+
+          <div class="row" style="margin-top:14px;">
+            <div>
+              <label>Horário</label>
+              <input type="time" id="cyc-time" required>
+            </div>
+            <div>
+              <label>Data de início</label>
+              <input type="date" id="cyc-start-date" required>
+            </div>
+          </div>
+
+          <label>Observações (opcional)</label>
+          <textarea id="cyc-notes" rows="2" placeholder="Notas do ciclo..."></textarea>
+
+          <button type="submit" class="btn">Cadastrar ciclo</button>
+        </form>
+      </div>
+
+      <div class="panel">
+        <h2>Ciclos definidos <span class="n" id="cyc-count"></span></h2>
+        <div id="cycle-list"><div class="empty-state">Nenhum ciclo cadastrado ainda.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: REGISTRAR -->
+<div class="modal-overlay" id="modal-registrar">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <h2>Registrar aplicação</h2>
+      <button type="button" class="modal-close" data-close-modal aria-label="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="panel">
+        <form id="form-application">
+          <label>Ciclo</label>
+          <select id="reg-cycle" required></select>
+
+          <label>Substâncias <span style="text-transform:none;color:var(--muted);">— marque as que forem aplicar</span></label>
+          <div id="reg-substances-list"></div>
+
+          <div class="row">
+            <div>
+              <label>Data e hora</label>
+              <input type="datetime-local" id="reg-datetime" required>
+            </div>
+            <div>
+              <label>Local de aplicação</label>
+              <select id="reg-site">
+                <option value="Glúteo esquerdo">Glúteo esquerdo</option>
+                <option value="Glúteo direito">Glúteo direito</option>
+                <option value="Deltoide esquerdo">Deltoide esquerdo</option>
+                <option value="Deltoide direito">Deltoide direito</option>
+                <option value="Vasto lateral esquerdo">Vasto lateral esquerdo</option>
+                <option value="Vasto lateral direito">Vasto lateral direito</option>
+                <option value="Ventroglúteo esquerdo">Ventroglúteo esquerdo</option>
+                <option value="Ventroglúteo direito">Ventroglúteo direito</option>
+                <option value="Outro">Outro</option>
+              </select>
+            </div>
+          </div>
+
+          <label>Observações (opcional)</label>
+          <textarea id="reg-notes" rows="2" placeholder="Sensações, horário real, etc."></textarea>
+
+          <div class="calc-readout">
+            <div class="calc-totals">
+              <div class="calc-item">
+                <div class="big" id="reg-ml-display">0 ml</div>
+                <div class="label">volume total</div>
+              </div>
+              <div class="calc-item">
+                <div class="big" id="reg-mg-display">0 mg</div>
+                <div class="label">dose total</div>
+              </div>
+            </div>
+          </div>
+
+          <div id="reg-stock-warning"></div>
+
+          <button type="submit" class="btn" id="reg-submit">Registrar aplicação</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- NAV INFERIOR (mobile) -->
 <nav class="bottom-nav">
   <button data-tab="dashboard" class="active">
     <svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg>Início
-  </button>
-  <button data-tab="substancias">
-    <svg viewBox="0 0 24 24"><path d="M9 3h6M10 3v5l-5.5 9.5A2 2 0 0 0 6.2 21h11.6a2 2 0 0 0 1.7-3L14 8V3"/></svg>Estoque
-  </button>
-  <button data-tab="ciclos">
-    <svg viewBox="0 0 24 24"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>Ciclos
   </button>
   <button data-tab="historico">
     <svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13"/><path d="M3 6h.01M3 12h.01M3 18h.01"/></svg>Histórico
@@ -952,7 +1111,7 @@ if (auth) {
 }
 
 /* ============================================================
-   2) NAVEGAÇÃO (nav superior no desktop, nav inferior + FAB no mobile)
+   2) NAVEGAÇÃO (Início/Histórico em abas; cadastros em modais via FAB)
 ============================================================ */
 function switchTab(tab){
   document.querySelectorAll('.top-nav-desktop button, nav.bottom-nav button').forEach(b => {
@@ -967,6 +1126,30 @@ document.querySelectorAll('.top-nav-desktop button, nav.bottom-nav button').forE
   btn.addEventListener('click', () => switchTab(btn.dataset.tab));
 });
 
+function openModal(id){
+  const el = document.getElementById(id);
+  if (el) el.classList.add('open');
+}
+function closeModal(id){
+  const el = document.getElementById(id);
+  if (el) el.classList.remove('open');
+}
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.classList.remove('open'); });
+});
+document.querySelectorAll('[data-close-modal]').forEach(btn => {
+  btn.addEventListener('click', () => btn.closest('.modal-overlay').classList.remove('open'));
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  document.querySelectorAll('.modal-overlay.open').forEach(overlay => overlay.classList.remove('open'));
+  if (fabOverlayGlobalOpen()) closeFab();
+});
+function fabOverlayGlobalOpen(){
+  const el = document.getElementById('fab-overlay');
+  return el && el.classList.contains('open');
+}
+
 const fabBtn = document.getElementById('fab-btn');
 const fabOverlay = document.getElementById('fab-overlay');
 function openFab(){ fabOverlay.classList.add('open'); fabBtn.classList.add('open'); }
@@ -978,7 +1161,7 @@ fabOverlay.addEventListener('click', (e) => { if (e.target === fabOverlay) close
 document.querySelectorAll('.fab-option').forEach(opt => {
   opt.addEventListener('click', () => {
     closeFab();
-    switchTab(opt.dataset.fabTab);
+    openModal('modal-' + opt.dataset.fabTab);
   });
 });
 
@@ -1007,7 +1190,8 @@ function dashIcon(name){
   const icons = {
     clock: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>',
     calendar: '<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',
-    trend: '<svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>'
+    trend: '<svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>',
+    cycle: '<svg viewBox="0 0 24 24"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>'
   };
   return icons[name] || '';
 }
@@ -1046,9 +1230,10 @@ function renderDashboard(){
   const alertBox = document.getElementById('dash-alert');
   const lastCard = document.getElementById('dash-last');
   const nextCard = document.getElementById('dash-next');
+  const cycleCard = document.getElementById('dash-cycle');
   const weekCard = document.getElementById('dash-week');
   const stockList = document.getElementById('dash-stock-list');
-  if (!alertBox || !lastCard || !nextCard || !weekCard || !stockList) return;
+  if (!alertBox || !lastCard || !nextCard || !cycleCard || !weekCard || !stockList) return;
 
   // alerta de estoque baixo/esgotado
   const lowStock = substances.filter(s => s.availableMl <= 0 || s.availableMl <= s.startMl * 0.15);
@@ -1063,13 +1248,17 @@ function renderDashboard(){
     lastCard.innerHTML = `
       <div class="kicker">${dashIcon('clock')}última aplicação</div>
       <div class="big-value">${escapeHtml(a.substanceName)}${a.substanceNickname ? ' <span style="color:var(--teal);font-weight:400;">"' + escapeHtml(a.substanceNickname) + '"</span>' : ''}</div>
-      <div class="sub-value">${fmt(a.mlApplied)} ml · ${fmt(a.mgApplied)} mg${a.cycleName ? ' · ' + escapeHtml(a.cycleName) : ''}</div>
-      <div class="sub-value">${date ? formatRelative(date) : 'agora mesmo'}</div>
+      <div class="info-rows">
+        <div class="info-row"><span class="il">Quando</span><span class="ir">${date ? formatRelative(date) : 'agora mesmo'}</span></div>
+        <div class="info-row"><span class="il">Dose</span><span class="ir">${fmt(a.mlApplied)} ml · ${fmt(a.mgApplied)} mg</span></div>
+        ${a.site ? `<div class="info-row"><span class="il">Local</span><span class="ir">${escapeHtml(a.site)}</span></div>` : ''}
+        ${a.cycleName ? `<div class="info-row"><span class="il">Protocolo</span><span class="ir">${escapeHtml(a.cycleName)}</span></div>` : ''}
+      </div>
     `;
   } else {
     lastCard.innerHTML = `
       <div class="kicker">${dashIcon('clock')}última aplicação</div>
-      <div class="sub-value" style="margin-top:12px;">Nenhuma aplicação registrada ainda.</div>
+      <div class="sub-value" style="margin-top:14px;">Nenhuma aplicação registrada ainda.</div>
     `;
   }
 
@@ -1093,31 +1282,78 @@ function renderDashboard(){
     nextCard.innerHTML = `
       <div class="kicker">${dashIcon('calendar')}próxima aplicação</div>
       <div class="big-value">${formatUpcoming(nextEntry.date)}</div>
-      <div class="sub-value">${escapeHtml(label)} · ${fmt(nextEntry.doseMl)} ml · ${escapeHtml(nextEntry.cycle.name)}</div>
+      <div class="info-rows">
+        <div class="info-row"><span class="il">Substância</span><span class="ir">${escapeHtml(label)}</span></div>
+        <div class="info-row"><span class="il">Dose</span><span class="ir">${fmt(nextEntry.doseMl)} ml</span></div>
+        <div class="info-row"><span class="il">Protocolo</span><span class="ir">${escapeHtml(nextEntry.cycle.name)}</span></div>
+      </div>
     `;
   } else {
     nextCard.innerHTML = `
       <div class="kicker">${dashIcon('calendar')}próxima aplicação</div>
-      <div class="sub-value" style="margin-top:12px;">Cadastre um ciclo com dias definidos para ver a previsão aqui.</div>
+      <div class="sub-value" style="margin-top:14px;">Cadastre um ciclo com dias definidos para ver a previsão aqui.</div>
     `;
   }
 
-  // resumo dos últimos 7 dias
-  const weekAgo = new Date(now); weekAgo.setDate(now.getDate() - 7);
+  // ciclo atual
+  const activeCycle = cycles.find(c => c.active);
+  if (activeCycle) {
+    const startLabel = activeCycle.startDate ? new Date(activeCycle.startDate + 'T00:00:00').toLocaleDateString('pt-BR') : '—';
+    const daysSince = activeCycle.startDate ? Math.max(0, Math.round((now - new Date(activeCycle.startDate + 'T00:00:00')) / 86400000)) : null;
+    const itemCount = getCycleItems(activeCycle).length;
+    cycleCard.innerHTML = `
+      <div class="kicker">${dashIcon('cycle')}ciclo atual</div>
+      <div class="big-value">${escapeHtml(activeCycle.name)}</div>
+      <div class="info-rows">
+        <div class="info-row"><span class="il">Iniciado em</span><span class="ir">${startLabel}</span></div>
+        ${daysSince !== null ? `<div class="info-row"><span class="il">Há</span><span class="ir">${daysSince} dia${daysSince === 1 ? '' : 's'}</span></div>` : ''}
+        <div class="info-row"><span class="il">Substâncias</span><span class="ir">${itemCount}</span></div>
+      </div>
+    `;
+  } else {
+    cycleCard.innerHTML = `
+      <div class="kicker">${dashIcon('cycle')}ciclo atual</div>
+      <div class="sub-value" style="margin-top:14px;">Nenhum ciclo marcado como atual. Abra um ciclo e toque em "Marcar como atual".</div>
+    `;
+  }
+
+  // resumo dos últimos 7 dias, com mini gráfico de mg por dia
+  const dayBuckets = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(now); d.setDate(now.getDate() - i); d.setHours(0, 0, 0, 0);
+    dayBuckets.push({ date: d, mg: 0 });
+  }
+  applications.forEach(a => {
+    const d = a.appliedAt?.toDate ? a.appliedAt.toDate() : null;
+    if (!d) return;
+    const bucket = dayBuckets.find(b => b.date.toDateString() === d.toDateString());
+    if (bucket) bucket.mg += (a.mgApplied || 0);
+  });
   const weekApps = applications.filter(a => {
     const d = a.appliedAt?.toDate ? a.appliedAt.toDate() : null;
-    return d && d >= weekAgo;
+    return d && d >= dayBuckets[0].date;
   });
-  const weekMg = weekApps.reduce((sum, a) => sum + (a.mgApplied || 0), 0);
+  const weekMg = dayBuckets.reduce((sum, b) => sum + b.mg, 0);
+  const maxMg = Math.max(1, ...dayBuckets.map(b => b.mg));
+  const barsHtml = dayBuckets.map(b => {
+    const pct = Math.max(0, Math.min(100, (b.mg / maxMg) * 100));
+    const label = b.date.toLocaleDateString('pt-BR', { weekday: 'narrow' });
+    return `
+    <div class="bar-col">
+      <div class="bar" title="${fmt(b.mg)} mg"><div class="fill" style="height:${pct}%"></div></div>
+      <div class="bar-label">${label}</div>
+    </div>`;
+  }).join('');
   weekCard.innerHTML = `
     <div class="kicker">${dashIcon('trend')}últimos 7 dias</div>
     <div class="stat-row">
       <div><div class="stat-num">${weekApps.length}</div><div class="sub-value">aplicações</div></div>
       <div><div class="stat-num">${fmt(weekMg)}</div><div class="sub-value">mg totais</div></div>
     </div>
+    <div class="chart-bars">${barsHtml}</div>
   `;
 
-  // estoque (menor % disponível primeiro)
+  // estoque (menor % disponível primeiro), com barra de progresso
   if (!substances.length) {
     stockList.innerHTML = `<div class="empty-state">Nenhuma substância cadastrada ainda.</div>`;
   } else {
@@ -1125,13 +1361,14 @@ function renderDashboard(){
       (a.availableMl / (a.startMl || 1)) - (b.availableMl / (b.startMl || 1)));
     stockList.innerHTML = sorted.map(s => {
       const pct = s.startMl > 0 ? Math.max(0, Math.min(100, (s.availableMl / s.startMl) * 100)) : 0;
+      const levelClass = stockLevelClass(s);
       return `
       <div class="dash-stock-row">
-        <div class="vial mini ${stockLevelClass(s)}"><div class="fill" style="height:${pct}%"></div></div>
-        <div class="dsr-info">
-          <div class="dsr-name">${escapeHtml(s.name)}${s.nickname ? ' <span style="color:var(--teal);font-weight:400;">"' + escapeHtml(s.nickname) + '"</span>' : ''}</div>
-          <div class="dsr-meta">${fmt(s.availableMl)} ml disponível</div>
+        <div class="dsr-top">
+          <span class="dsr-name">${escapeHtml(s.name)}${s.nickname ? ' <span style="color:var(--teal);font-weight:400;">"' + escapeHtml(s.nickname) + '"</span>' : ''}</span>
+          <span class="dsr-meta">${fmt(s.availableMl)} ml</span>
         </div>
+        <div class="stock-bar ${levelClass}"><div class="fill" style="width:${pct}%"></div></div>
       </div>`;
     }).join('');
   }
@@ -1148,6 +1385,8 @@ formSubstance.addEventListener('submit', async (e) => {
   const nickname = document.getElementById('sub-nickname').value.trim();
   const conc = parseFloat(document.getElementById('sub-conc').value);
   const vol = parseFloat(document.getElementById('sub-vol').value);
+  const brand = document.getElementById('sub-brand').value.trim();
+  const purchaseDate = document.getElementById('sub-purchase-date').value;
   if (!name || isNaN(conc) || isNaN(vol)) return;
 
   await addDoc(collection(db, 'substances'), {
@@ -1156,6 +1395,8 @@ formSubstance.addEventListener('submit', async (e) => {
     concentrationMgMl: conc,
     availableMl: vol,
     startMl: vol,
+    brand,
+    purchaseDate,
     createdAt: serverTimestamp()
   });
   formSubstance.reset();
@@ -1171,12 +1412,16 @@ function renderSubstances(){
   }
   list.innerHTML = substances.map(s => {
     const pct = s.startMl > 0 ? Math.max(0, Math.min(100, (s.availableMl / s.startMl) * 100)) : 0;
+    const extras = [
+      s.brand ? `marca: ${s.brand}` : '',
+      s.purchaseDate ? `comprado em ${new Date(s.purchaseDate + 'T00:00:00').toLocaleDateString('pt-BR')}` : ''
+    ].filter(Boolean).join(' · ');
     return `
     <div class="substance-card">
       <div class="vial ${stockLevelClass(s)}"><div class="fill" style="height:${pct}%"></div></div>
       <div class="sub-info">
         <div class="name">${escapeHtml(s.name)}${s.nickname ? ` <span style="color:var(--teal);font-weight:400;">"${escapeHtml(s.nickname)}"</span>` : ''}</div>
-        <div class="meta">${fmt(s.concentrationMgMl)} mg/ml</div>
+        <div class="meta">${fmt(s.concentrationMgMl)} mg/ml${extras ? ' · ' + escapeHtml(extras) : ''}</div>
         <div class="stock">disponível: <b>${fmt(s.availableMl)} ml</b> de ${fmt(s.startMl)} ml</div>
       </div>
       <div class="sub-actions">
@@ -1271,29 +1516,45 @@ function renderCycItems(){
 document.getElementById('cyc-add-item').addEventListener('click', addCycItem);
 addCycItem();
 
+const cycStartDateInput = document.getElementById('cyc-start-date');
+cycStartDateInput.value = new Date().toISOString().slice(0, 10);
+
 formCycle.addEventListener('submit', async (e) => {
   e.preventDefault();
   if (!db) return;
   const name = document.getElementById('cyc-name').value.trim();
   const time = document.getElementById('cyc-time').value;
+  const startDate = cycStartDateInput.value;
   const notes = document.getElementById('cyc-notes').value.trim();
   const items = cycItems
     .filter(it => it.substanceId && parseFloat(it.doseMl) > 0 && it.days.length)
     .map(it => ({ substanceId: it.substanceId, doseMl: parseFloat(it.doseMl), days: [...it.days].sort() }));
 
-  if (!name || !time || !items.length) {
-    alert('Preencha nome, horário, e ao menos uma substância com dose e pelo menos um dia marcado.');
+  if (!name || !time || !startDate || !items.length) {
+    alert('Preencha nome, horário, data de início, e ao menos uma substância com dose e pelo menos um dia marcado.');
     return;
   }
 
+  const makeActive = !cycles.some(c => c.active);
+
   await addDoc(collection(db, 'cycles'), {
-    name, items, time, notes,
+    name, items, time, notes, startDate,
+    active: makeActive,
     createdAt: serverTimestamp()
   });
   formCycle.reset();
+  cycStartDateInput.value = new Date().toISOString().slice(0, 10);
   cycItems = [];
   addCycItem();
 });
+
+async function setActiveCycle(cycleId){
+  if (!db) return;
+  const updates = cycles
+    .filter(c => Boolean(c.active) !== (c.id === cycleId))
+    .map(c => updateDoc(doc(db, 'cycles', c.id), { active: c.id === cycleId }));
+  await Promise.all(updates);
+}
 
 function getCycleItems(c){
   if (Array.isArray(c.items) && c.items.length) {
@@ -1323,17 +1584,19 @@ function renderCycles(){
           <div class="cs-days">${dayPills}</div>
         </div>`;
       }).join('');
+      const startLabel = c.startDate ? `iniciado em ${new Date(c.startDate + 'T00:00:00').toLocaleDateString('pt-BR')}` : '';
       return `
       <div class="cycle-card">
         <div class="top">
           <div>
-            <div class="name">${escapeHtml(c.name)}</div>
-            <div class="meta">às ${c.time}</div>
+            <div class="name">${escapeHtml(c.name)} ${c.active ? '<span class="badge">atual</span>' : ''}</div>
+            <div class="meta">às ${c.time}${startLabel ? ' · ' + startLabel : ''}</div>
           </div>
           <button class="btn danger" data-del-cyc="${c.id}">Remover</button>
         </div>
         <div class="cycle-substances">${subRows}</div>
         ${c.notes ? `<div class="meta" style="margin-top:8px;">${escapeHtml(c.notes)}</div>` : ''}
+        ${c.active ? '' : `<button type="button" class="btn secondary" style="margin-top:12px;padding:8px 14px;font-size:12.5px;" data-set-active-cyc="${c.id}">Marcar como atual</button>`}
       </div>`;
     }).join('');
 
@@ -1343,6 +1606,10 @@ function renderCycles(){
           await deleteDoc(doc(db, 'cycles', b.dataset.delCyc));
         }
       });
+    });
+
+    list.querySelectorAll('[data-set-active-cyc]').forEach(b => {
+      b.addEventListener('click', () => setActiveCycle(b.dataset.setActiveCyc));
     });
   }
 
@@ -1421,6 +1688,7 @@ regDatetimeInput.addEventListener('change', refreshRegSubstancesList);
 
 function updateCalcReadout(){
   let totalMg = 0;
+  let totalMl = 0;
   let hasWarning = false;
   const warnings = [];
 
@@ -1433,6 +1701,7 @@ function updateCalcReadout(){
     row.querySelector('.reg-item-mg').textContent = `${fmt(mg)} mg`;
     if (checked && sub) {
       totalMg += mg;
+      totalMl += ml;
       if (ml > sub.availableMl) {
         hasWarning = true;
         warnings.push(`${sub.name}: disponível ${fmt(sub.availableMl)} ml`);
@@ -1441,6 +1710,7 @@ function updateCalcReadout(){
   });
 
   document.getElementById('reg-mg-display').textContent = `${fmt(totalMg)} mg`;
+  document.getElementById('reg-ml-display').textContent = `${fmt(totalMl)} ml`;
 
   const warnBox = document.getElementById('reg-stock-warning');
   const submitBtn = document.getElementById('reg-submit');
@@ -1459,6 +1729,7 @@ formApplication.addEventListener('submit', async (e) => {
   if (!db) return;
   const datetimeVal = regDatetimeInput.value;
   const notes = document.getElementById('reg-notes').value.trim();
+  const site = document.getElementById('reg-site').value;
   const cycle = cycles.find(c => c.id === regCycleSel.value);
   if (!datetimeVal) return;
 
@@ -1494,6 +1765,7 @@ formApplication.addEventListener('submit', async (e) => {
       cycleName: cycle ? cycle.name : null,
       mlApplied: ml,
       mgApplied: mg,
+      site,
       notes,
       appliedAt: appliedAtDate
     });
@@ -1505,6 +1777,7 @@ formApplication.addEventListener('submit', async (e) => {
   formApplication.reset();
   regDatetimeInput.value = nowLocalDatetimeValue();
   refreshRegSubstancesList();
+  closeModal('modal-registrar');
 });
 
 /* ============================================================
@@ -1518,18 +1791,53 @@ function renderHistory(){
     renderDashboard();
     return;
   }
-  list.innerHTML = applications.map(a => {
-    const date = a.appliedAt?.toDate ? a.appliedAt.toDate() : null;
-    const dateStr = date ? date.toLocaleString('pt-BR') : 'agora mesmo';
+
+  // agrupa por protocolo (ciclo) e, dentro de cada um, por dia
+  const protocolGroups = new Map();
+  applications.forEach(a => {
+    const protocolName = a.cycleName || 'Sem protocolo';
+    const date = a.appliedAt?.toDate ? a.appliedAt.toDate() : new Date();
+    const dayKey = date.toISOString().slice(0, 10);
+
+    if (!protocolGroups.has(protocolName)) protocolGroups.set(protocolName, new Map());
+    const days = protocolGroups.get(protocolName);
+    if (!days.has(dayKey)) days.set(dayKey, { dateObj: date, items: [] });
+    days.get(dayKey).items.push(a);
+  });
+
+  list.innerHTML = [...protocolGroups.entries()].map(([protocolName, days]) => {
+    const daysHtml = [...days.entries()].map(([dayKey, dayGroup]) => {
+      const dayLabel = dayGroup.dateObj.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
+      const itemsHtml = dayGroup.items.map(a => {
+        const date = a.appliedAt?.toDate ? a.appliedAt.toDate() : null;
+        const timeStr = date ? date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '';
+        const extras = [a.site, a.notes].filter(Boolean).join(' · ');
+        return `
+        <div class="history-item">
+          <div>
+            <div class="hl">${escapeHtml(a.substanceName)}${a.substanceNickname ? ` <span style="color:var(--teal);font-weight:400;">"${escapeHtml(a.substanceNickname)}"</span>` : ''}</div>
+            <div class="date">${timeStr}${extras ? ' · ' + escapeHtml(extras) : ''}</div>
+          </div>
+          <div class="hr">${fmt(a.mlApplied)} ml<br>${fmt(a.mgApplied)} mg</div>
+        </div>`;
+      }).join('');
+      return `
+      <div class="hist-day">
+        <div class="hist-day-label">${dayLabel}</div>
+        ${itemsHtml}
+      </div>`;
+    }).join('');
+
     return `
-    <div class="history-item">
-      <div>
-        <div class="hl">${escapeHtml(a.substanceName)}${a.substanceNickname ? ` <span style="color:var(--teal);font-weight:400;">"${escapeHtml(a.substanceNickname)}"</span>` : ''}</div>
-        <div class="date">${dateStr}${a.cycleName ? ' · ' + escapeHtml(a.cycleName) : ''}${a.notes ? ' · ' + escapeHtml(a.notes) : ''}</div>
+    <div class="hist-protocol">
+      <div class="hist-protocol-title">
+        <svg viewBox="0 0 24 24"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+        ${escapeHtml(protocolName)}
       </div>
-      <div class="hr">${fmt(a.mlApplied)} ml<br>${fmt(a.mgApplied)} mg</div>
+      ${daysHtml}
     </div>`;
   }).join('');
+
   renderDashboard();
 }
 
