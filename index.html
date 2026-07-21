@@ -105,26 +105,48 @@
   label{
     display:block;
     font-family:var(--mono);
-    font-size:11.5px;
-    letter-spacing:.05em;
+    font-size:11px;
+    letter-spacing:.06em;
     text-transform:uppercase;
     color:var(--muted);
-    margin:14px 0 6px;
+    margin:16px 0 7px;
+    font-weight:500;
   }
   label:first-child{margin-top:0;}
-  input[type=text], input[type=number], input[type=time], select, textarea{
+  input[type=text], input[type=number], input[type=time], input[type=date], input[type=datetime-local], select, textarea{
     width:100%;
     background:var(--bg-alt);
-    border:1px solid var(--line);
+    border:1.5px solid var(--line);
     color:var(--ink);
-    border-radius:6px;
-    padding:10px 12px;
+    border-radius:12px;
+    padding:12px 14px;
     font-family:var(--sans);
     font-size:14.5px;
     outline:none;
-    transition:border-color .15s;
+    transition:border-color .15s, box-shadow .15s, background-color .15s;
   }
-  input:focus, select:focus, textarea:focus{border-color:var(--teal);}
+  input::placeholder, textarea::placeholder{color:#9AA3B0;}
+  input[type=text]:hover, input[type=number]:hover, input[type=time]:hover,
+  input[type=date]:hover, input[type=datetime-local]:hover, select:hover, textarea:hover{
+    border-color:var(--teal-dim);
+  }
+  input:focus, select:focus, textarea:focus{
+    border-color:var(--teal);
+    background:var(--card);
+    box-shadow:0 0 0 3px var(--ok-tint);
+  }
+  select{
+    appearance:none;
+    -webkit-appearance:none;
+    background-image:url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23626C7A' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;
+    background-position:right 14px center;
+    background-size:16px;
+    padding-right:40px;
+    cursor:pointer;
+  }
+  textarea{resize:vertical;min-height:66px;line-height:1.5;}
+  input[type=checkbox]{accent-color:var(--teal);width:17px;height:17px;cursor:pointer;}
   .row{display:flex;gap:14px;flex-wrap:wrap;}
   .row > div{flex:1;min-width:150px;}
 
@@ -1072,7 +1094,6 @@
   </div>
 </div>
 
-<footer class="foot">Dados armazenados no seu próprio projeto Firebase — apenas você tem acesso, conforme as regras de segurança configuradas.</footer>
 
 <div class="toast-container" id="toast-container"></div>
 
@@ -1209,9 +1230,12 @@ function translateAuthError(code){
   return map[code] || 'Não foi possível concluir. Tente novamente.';
 }
 
+let currentUserId = null;
+
 if (auth) {
   onAuthStateChanged(auth, (user) => {
     if (user) {
+      currentUserId = user.uid;
       loginScreen.style.display = 'none';
       appScreen.style.display = 'block';
       document.body.classList.add('logged-in');
@@ -1219,6 +1243,7 @@ if (auth) {
       formLogin.reset();
       startDataListeners();
     } else {
+      currentUserId = null;
       stopDataListeners();
       appScreen.style.display = 'none';
       loginScreen.style.display = 'block';
@@ -1227,6 +1252,13 @@ if (auth) {
   });
 } else {
   loginScreen.style.display = 'block';
+}
+
+function userCollection(name){
+  return collection(db, 'users', currentUserId, name);
+}
+function userDoc(name, id){
+  return doc(db, 'users', currentUserId, name, id);
 }
 
 /* ============================================================
@@ -1588,13 +1620,13 @@ formSubstance.addEventListener('submit', async (e) => {
   if (editingSubstanceId) {
     const current = substances.find(s => s.id === editingSubstanceId);
     const newStartMl = current ? Math.max(current.startMl || 0, vol) : vol;
-    await updateDoc(doc(db, 'substances', editingSubstanceId), {
+    await updateDoc(userDoc('substances', editingSubstanceId), {
       name, nickname, concentrationMgMl: conc, availableMl: vol, startMl: newStartMl, brand, purchaseDate
     });
     showToast('Alterações salvas.');
     cancelEditSubstance();
   } else {
-    await addDoc(collection(db, 'substances'), {
+    await addDoc(userCollection('substances'), {
       name, nickname, concentrationMgMl: conc, availableMl: vol, startMl: vol, brand, purchaseDate,
       createdAt: serverTimestamp()
     });
@@ -1644,7 +1676,7 @@ function renderSubstances(){
       const ok = await confirmDialog('Remover esta substância? O histórico de aplicações associado será mantido.');
       if (!ok) return;
       if (editingSubstanceId === b.dataset.delSub) cancelEditSubstance();
-      await deleteDoc(doc(db, 'substances', b.dataset.delSub));
+      await deleteDoc(userDoc('substances', b.dataset.delSub));
       showToast('Substância removida.');
     });
   });
@@ -1782,12 +1814,12 @@ formCycle.addEventListener('submit', async (e) => {
   }
 
   if (editingCycleId) {
-    await updateDoc(doc(db, 'cycles', editingCycleId), { name, items, time, notes, startDate });
+    await updateDoc(userDoc('cycles', editingCycleId), { name, items, time, notes, startDate });
     showToast('Alterações salvas.');
     cancelEditCycle();
   } else {
     const makeActive = !cycles.some(c => c.active);
-    await addDoc(collection(db, 'cycles'), {
+    await addDoc(userCollection('cycles'), {
       name, items, time, notes, startDate,
       active: makeActive,
       createdAt: serverTimestamp()
@@ -1805,7 +1837,7 @@ async function setActiveCycle(cycleId){
   const target = cycles.find(c => c.id === cycleId);
   const updates = cycles
     .filter(c => Boolean(c.active) !== (c.id === cycleId))
-    .map(c => updateDoc(doc(db, 'cycles', c.id), { active: c.id === cycleId }));
+    .map(c => updateDoc(userDoc('cycles', c.id), { active: c.id === cycleId }));
   await Promise.all(updates);
   if (target) showToast(`"${target.name}" marcado como ciclo atual.`);
 }
@@ -1869,7 +1901,7 @@ function renderCycles(){
         const ok = await confirmDialog('Remover este ciclo?');
         if (!ok) return;
         if (editingCycleId === b.dataset.delCyc) cancelEditCycle();
-        await deleteDoc(doc(db, 'cycles', b.dataset.delCyc));
+        await deleteDoc(userDoc('cycles', b.dataset.delCyc));
         showToast('Ciclo removido.');
       });
     });
@@ -2023,7 +2055,7 @@ formApplication.addEventListener('submit', async (e) => {
 
   for (const { sub, ml } of entries) {
     const mg = sub.concentrationMgMl * ml;
-    await addDoc(collection(db, 'applications'), {
+    await addDoc(userCollection('applications'), {
       substanceId: sub.id,
       substanceName: sub.name,
       substanceNickname: sub.nickname || '',
@@ -2035,7 +2067,7 @@ formApplication.addEventListener('submit', async (e) => {
       notes,
       appliedAt: appliedAtDate
     });
-    await updateDoc(doc(db, 'substances', sub.id), {
+    await updateDoc(userDoc('substances', sub.id), {
       availableMl: increment(-ml)
     });
   }
@@ -2123,8 +2155,8 @@ function renderHistory(){
       const ok = await confirmDialog(`Apagar o registro de "${app.substanceName}"? O estoque descontado será devolvido.`);
       if (!ok) return;
       const sub = substances.find(s => s.id === app.substanceId);
-      if (sub) await updateDoc(doc(db, 'substances', sub.id), { availableMl: increment(app.mlApplied) });
-      await deleteDoc(doc(db, 'applications', app.id));
+      if (sub) await updateDoc(userDoc('substances', sub.id), { availableMl: increment(app.mlApplied) });
+      await deleteDoc(userDoc('applications', app.id));
       showToast('Registro apagado e estoque devolvido.');
     });
   });
@@ -2177,7 +2209,7 @@ formEditApplication.addEventListener('submit', async (e) => {
 
   const newMg = sub ? sub.concentrationMgMl * newMl : app.mgApplied;
 
-  await updateDoc(doc(db, 'applications', editingApplicationId), {
+  await updateDoc(userDoc('applications', editingApplicationId), {
     mlApplied: newMl,
     mgApplied: newMg,
     site,
@@ -2186,7 +2218,7 @@ formEditApplication.addEventListener('submit', async (e) => {
   });
 
   if (sub) {
-    await updateDoc(doc(db, 'substances', sub.id), { availableMl: increment(app.mlApplied - newMl) });
+    await updateDoc(userDoc('substances', sub.id), { availableMl: increment(app.mlApplied - newMl) });
   }
 
   showToast('Aplicação atualizada.');
@@ -2210,19 +2242,19 @@ function startDataListeners(){
     renderSubstances(); renderCycles(); renderHistory(); refreshSubstanceSelects();
     return;
   }
-  unsubscribers.push(onSnapshot(collection(db, 'substances'), (snap) => {
+  unsubscribers.push(onSnapshot(userCollection('substances'), (snap) => {
     substances = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     renderSubstances();
     refreshSubstanceSelects();
     renderCycles();
   }));
 
-  unsubscribers.push(onSnapshot(collection(db, 'cycles'), (snap) => {
+  unsubscribers.push(onSnapshot(userCollection('cycles'), (snap) => {
     cycles = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     renderCycles();
   }));
 
-  unsubscribers.push(onSnapshot(query(collection(db, 'applications'), orderBy('appliedAt', 'desc')), (snap) => {
+  unsubscribers.push(onSnapshot(query(userCollection('applications'), orderBy('appliedAt', 'desc')), (snap) => {
     applications = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     renderHistory();
   }));
