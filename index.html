@@ -688,6 +688,68 @@
     .modal-overlay{align-items:center;padding:24px;}
     .modal-sheet{border-radius:20px;max-height:86vh;}
   }
+
+  /* ===================== TOASTS ===================== */
+  .toast-container{
+    position:fixed;left:0;right:0;bottom:88px;
+    display:flex;flex-direction:column;align-items:center;gap:8px;
+    z-index:90;pointer-events:none;padding:0 16px;
+  }
+  @media (min-width: 640px){ .toast-container{bottom:24px;} }
+  .toast{
+    max-width:420px;width:100%;
+    background:var(--ink);color:#FFFFFF;
+    font-family:var(--sans);font-size:13.5px;font-weight:500;
+    border-radius:12px;padding:12px 16px;
+    box-shadow:var(--shadow-md);
+    opacity:0;transform:translateY(10px);
+    transition:opacity .25s ease, transform .25s ease;
+    display:flex;align-items:center;gap:10px;
+  }
+  .toast.show{opacity:1;transform:translateY(0);}
+  .toast.err{background:var(--danger);}
+  .toast .toast-icon{flex:none;width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;}
+
+  /* ===================== MODAL DE CONFIRMAÇÃO ===================== */
+  .confirm-overlay{
+    position:fixed;inset:0;background:rgba(15,20,32,.5);
+    display:none;align-items:center;justify-content:center;z-index:95;padding:20px;
+  }
+  .confirm-overlay.open{display:flex;}
+  .confirm-box{
+    width:100%;max-width:340px;background:var(--card);border-radius:18px;
+    padding:22px;box-shadow:var(--shadow-md);animation:sheetUp .18s ease;text-align:center;
+  }
+  .confirm-box p{font-size:14.5px;line-height:1.5;margin:0 0 18px;color:var(--ink);}
+  .confirm-actions{display:flex;gap:10px;}
+  .confirm-actions button{flex:1;margin-top:0;}
+
+  /* ===================== BOTÕES DE EDITAR/CARD ACTIONS ===================== */
+  .card-actions{display:flex;gap:6px;flex-direction:column;}
+  button.btn.ghost{
+    background:transparent;color:var(--muted);border:1px solid var(--line);
+    box-shadow:none;padding:6px 10px;font-size:12px;margin-top:0;
+  }
+  button.btn.ghost:hover{background:var(--card-hi);color:var(--ink);}
+  .editing-banner{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    background:var(--ok-tint);border:1px solid var(--teal-dim);border-radius:10px;
+    padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--teal);
+  }
+  .editing-banner button{
+    background:transparent;border:none;color:var(--teal);text-decoration:underline;
+    cursor:pointer;font-family:var(--sans);font-size:12.5px;flex:none;
+  }
+  .hist-item-actions{display:flex;gap:6px;flex:none;margin-left:10px;}
+  .hist-item-actions button{
+    width:28px;height:28px;border-radius:8px;border:1px solid var(--line);
+    background:var(--bg-alt);color:var(--muted);cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .hist-item-actions button svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+  .hist-item-actions button:hover{color:var(--teal);background:var(--ok-tint);}
+  .hist-item-actions button.del:hover{color:var(--danger);background:var(--danger-tint);}
+  .history-item{align-items:flex-start;}
 </style>
 </head>
 <body>
@@ -769,7 +831,8 @@
     </div>
     <div class="modal-body">
       <div class="panel">
-        <h2>Nova substância <span class="n">// cadastro</span></h2>
+        <h2 id="sub-form-title">Nova substância <span class="n">// cadastro</span></h2>
+        <div id="sub-editing-banner"></div>
         <form id="form-substance">
           <div class="row">
             <div>
@@ -801,7 +864,7 @@
               <input type="date" id="sub-purchase-date">
             </div>
           </div>
-          <button type="submit" class="btn">Cadastrar substância</button>
+          <button type="submit" class="btn" id="sub-submit">Cadastrar substância</button>
         </form>
       </div>
 
@@ -822,7 +885,8 @@
     </div>
     <div class="modal-body">
       <div class="panel">
-        <h2>Novo ciclo <span class="n">// agenda</span></h2>
+        <h2 id="cyc-form-title">Novo ciclo <span class="n">// agenda</span></h2>
+        <div id="cyc-editing-banner"></div>
         <form id="form-cycle">
           <label>Nome do ciclo</label>
           <input type="text" id="cyc-name" placeholder="Ex: Ciclo de manutenção" required>
@@ -845,7 +909,7 @@
           <label>Observações (opcional)</label>
           <textarea id="cyc-notes" rows="2" placeholder="Notas do ciclo..."></textarea>
 
-          <button type="submit" class="btn">Cadastrar ciclo</button>
+          <button type="submit" class="btn" id="cyc-submit">Cadastrar ciclo</button>
         </form>
       </div>
 
@@ -919,6 +983,49 @@
   </div>
 </div>
 
+<!-- MODAL: EDITAR APLICAÇÃO -->
+<div class="modal-overlay" id="modal-edit-application">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <h2>Editar aplicação</h2>
+      <button type="button" class="modal-close" data-close-modal aria-label="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="panel">
+        <h2 id="edit-app-substance-name">Substância</h2>
+        <form id="form-edit-application">
+          <div class="row">
+            <div>
+              <label>Quantidade aplicada (ml)</label>
+              <input type="number" id="edit-app-ml" step="any" min="0" required>
+            </div>
+            <div>
+              <label>Data e hora</label>
+              <input type="datetime-local" id="edit-app-datetime" required>
+            </div>
+          </div>
+          <label>Local de aplicação</label>
+          <select id="edit-app-site">
+            <option value="Glúteo esquerdo">Glúteo esquerdo</option>
+            <option value="Glúteo direito">Glúteo direito</option>
+            <option value="Deltoide esquerdo">Deltoide esquerdo</option>
+            <option value="Deltoide direito">Deltoide direito</option>
+            <option value="Vasto lateral esquerdo">Vasto lateral esquerdo</option>
+            <option value="Vasto lateral direito">Vasto lateral direito</option>
+            <option value="Ventroglúteo esquerdo">Ventroglúteo esquerdo</option>
+            <option value="Ventroglúteo direito">Ventroglúteo direito</option>
+            <option value="Outro">Outro</option>
+          </select>
+          <label>Observações (opcional)</label>
+          <textarea id="edit-app-notes" rows="2"></textarea>
+          <div id="edit-app-warning"></div>
+          <button type="submit" class="btn" id="edit-app-submit">Salvar alterações</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- NAV INFERIOR (mobile) -->
 <nav class="bottom-nav">
   <button data-tab="dashboard" class="active">
@@ -966,6 +1073,18 @@
 </div>
 
 <footer class="foot">Dados armazenados no seu próprio projeto Firebase — apenas você tem acesso, conforme as regras de segurança configuradas.</footer>
+
+<div class="toast-container" id="toast-container"></div>
+
+<div class="confirm-overlay" id="confirm-overlay">
+  <div class="confirm-box">
+    <p id="confirm-message">Tem certeza?</p>
+    <div class="confirm-actions">
+      <button type="button" class="btn secondary" id="confirm-no">Cancelar</button>
+      <button type="button" class="btn danger" style="padding:11px 18px;font-size:14px;" id="confirm-yes">Remover</button>
+    </div>
+  </div>
+</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
@@ -1144,10 +1263,59 @@ document.addEventListener('keydown', (e) => {
   if (e.key !== 'Escape') return;
   document.querySelectorAll('.modal-overlay.open').forEach(overlay => overlay.classList.remove('open'));
   if (fabOverlayGlobalOpen()) closeFab();
+  const confirmOverlay = document.getElementById('confirm-overlay');
+  if (confirmOverlay && confirmOverlay.classList.contains('open')) {
+    document.getElementById('confirm-no').click();
+  }
 });
 function fabOverlayGlobalOpen(){
   const el = document.getElementById('fab-overlay');
   return el && el.classList.contains('open');
+}
+
+/* ============================================================
+   2b) TOASTS E MODAL DE CONFIRMAÇÃO (substituem alert()/confirm())
+============================================================ */
+function showToast(message, type = 'ok'){
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+  const el = document.createElement('div');
+  el.className = 'toast' + (type === 'err' ? ' err' : '');
+  const icon = type === 'err'
+    ? '<svg class="toast-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>'
+    : '<svg class="toast-icon" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>';
+  el.innerHTML = icon + '<span></span>';
+  el.querySelector('span').textContent = message;
+  container.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('show'));
+  setTimeout(() => {
+    el.classList.remove('show');
+    setTimeout(() => el.remove(), 300);
+  }, 2800);
+}
+
+function confirmDialog(message, confirmLabel = 'Remover'){
+  return new Promise((resolve) => {
+    const overlay = document.getElementById('confirm-overlay');
+    document.getElementById('confirm-message').textContent = message;
+    const btnYes = document.getElementById('confirm-yes');
+    const btnNo = document.getElementById('confirm-no');
+    btnYes.textContent = confirmLabel;
+    overlay.classList.add('open');
+    function cleanup(result){
+      overlay.classList.remove('open');
+      btnYes.removeEventListener('click', onYes);
+      btnNo.removeEventListener('click', onNo);
+      overlay.removeEventListener('click', onOverlay);
+      resolve(result);
+    }
+    function onYes(){ cleanup(true); }
+    function onNo(){ cleanup(false); }
+    function onOverlay(e){ if (e.target === overlay) cleanup(false); }
+    btnYes.addEventListener('click', onYes);
+    btnNo.addEventListener('click', onNo);
+    overlay.addEventListener('click', onOverlay);
+  });
 }
 
 const fabBtn = document.getElementById('fab-btn');
@@ -1378,6 +1546,34 @@ function renderDashboard(){
    4) SUBSTÂNCIAS
 ============================================================ */
 const formSubstance = document.getElementById('form-substance');
+const subFormTitle = document.getElementById('sub-form-title');
+const subEditingBanner = document.getElementById('sub-editing-banner');
+const subSubmitBtn = document.getElementById('sub-submit');
+let editingSubstanceId = null;
+
+function startEditSubstance(sub){
+  editingSubstanceId = sub.id;
+  document.getElementById('sub-name').value = sub.name || '';
+  document.getElementById('sub-nickname').value = sub.nickname || '';
+  document.getElementById('sub-conc').value = sub.concentrationMgMl ?? '';
+  document.getElementById('sub-vol').value = sub.availableMl ?? '';
+  document.getElementById('sub-brand').value = sub.brand || '';
+  document.getElementById('sub-purchase-date').value = sub.purchaseDate || '';
+  subFormTitle.innerHTML = 'Editar substância <span class="n">// alterações</span>';
+  subSubmitBtn.textContent = 'Salvar alterações';
+  subEditingBanner.innerHTML = `<div class="editing-banner">Editando "${escapeHtml(sub.name)}"<button type="button" id="sub-cancel-edit">cancelar</button></div>`;
+  document.getElementById('sub-cancel-edit').addEventListener('click', cancelEditSubstance);
+  document.getElementById('sub-name').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function cancelEditSubstance(){
+  editingSubstanceId = null;
+  formSubstance.reset();
+  subFormTitle.innerHTML = 'Nova substância <span class="n">// cadastro</span>';
+  subSubmitBtn.textContent = 'Cadastrar substância';
+  subEditingBanner.innerHTML = '';
+}
+
 formSubstance.addEventListener('submit', async (e) => {
   e.preventDefault();
   if (!db) return;
@@ -1389,17 +1585,22 @@ formSubstance.addEventListener('submit', async (e) => {
   const purchaseDate = document.getElementById('sub-purchase-date').value;
   if (!name || isNaN(conc) || isNaN(vol)) return;
 
-  await addDoc(collection(db, 'substances'), {
-    name,
-    nickname,
-    concentrationMgMl: conc,
-    availableMl: vol,
-    startMl: vol,
-    brand,
-    purchaseDate,
-    createdAt: serverTimestamp()
-  });
-  formSubstance.reset();
+  if (editingSubstanceId) {
+    const current = substances.find(s => s.id === editingSubstanceId);
+    const newStartMl = current ? Math.max(current.startMl || 0, vol) : vol;
+    await updateDoc(doc(db, 'substances', editingSubstanceId), {
+      name, nickname, concentrationMgMl: conc, availableMl: vol, startMl: newStartMl, brand, purchaseDate
+    });
+    showToast('Alterações salvas.');
+    cancelEditSubstance();
+  } else {
+    await addDoc(collection(db, 'substances'), {
+      name, nickname, concentrationMgMl: conc, availableMl: vol, startMl: vol, brand, purchaseDate,
+      createdAt: serverTimestamp()
+    });
+    showToast('Substância cadastrada.');
+    formSubstance.reset();
+  }
 });
 
 function renderSubstances(){
@@ -1425,16 +1626,26 @@ function renderSubstances(){
         <div class="stock">disponível: <b>${fmt(s.availableMl)} ml</b> de ${fmt(s.startMl)} ml</div>
       </div>
       <div class="sub-actions">
+        <button class="btn ghost" data-edit-sub="${s.id}">Editar</button>
         <button class="btn danger" data-del-sub="${s.id}">Remover</button>
       </div>
     </div>`;
   }).join('');
 
+  list.querySelectorAll('[data-edit-sub]').forEach(b => {
+    b.addEventListener('click', () => {
+      const sub = substances.find(s => s.id === b.dataset.editSub);
+      if (sub) startEditSubstance(sub);
+    });
+  });
+
   list.querySelectorAll('[data-del-sub]').forEach(b => {
     b.addEventListener('click', async () => {
-      if (confirm('Remover esta substância? O histórico de aplicações associado será mantido.')) {
-        await deleteDoc(doc(db, 'substances', b.dataset.delSub));
-      }
+      const ok = await confirmDialog('Remover esta substância? O histórico de aplicações associado será mantido.');
+      if (!ok) return;
+      if (editingSubstanceId === b.dataset.delSub) cancelEditSubstance();
+      await deleteDoc(doc(db, 'substances', b.dataset.delSub));
+      showToast('Substância removida.');
     });
   });
 
@@ -1469,8 +1680,12 @@ function weekdaysMiniHtml(selectedDays){
 ============================================================ */
 const formCycle = document.getElementById('form-cycle');
 const cycItemsBox = document.getElementById('cyc-items');
+const cycFormTitle = document.getElementById('cyc-form-title');
+const cycEditingBanner = document.getElementById('cyc-editing-banner');
+const cycSubmitBtn = document.getElementById('cyc-submit');
 let cycItems = [];
 let cycItemUid = 0;
+let editingCycleId = null;
 
 function addCycItem(){
   cycItems.push({ uid: ++cycItemUid, substanceId: '', doseMl: '', days: [] });
@@ -1519,6 +1734,37 @@ addCycItem();
 const cycStartDateInput = document.getElementById('cyc-start-date');
 cycStartDateInput.value = new Date().toISOString().slice(0, 10);
 
+function startEditCycle(cycle){
+  editingCycleId = cycle.id;
+  document.getElementById('cyc-name').value = cycle.name || '';
+  document.getElementById('cyc-time').value = cycle.time || '';
+  cycStartDateInput.value = cycle.startDate || new Date().toISOString().slice(0, 10);
+  document.getElementById('cyc-notes').value = cycle.notes || '';
+
+  cycItems = getCycleItems(cycle).map(it => ({
+    uid: ++cycItemUid, substanceId: it.substanceId, doseMl: it.doseMl, days: [...it.days]
+  }));
+  if (!cycItems.length) cycItems = [{ uid: ++cycItemUid, substanceId: '', doseMl: '', days: [] }];
+  renderCycItems();
+
+  cycFormTitle.innerHTML = 'Editar ciclo <span class="n">// alterações</span>';
+  cycSubmitBtn.textContent = 'Salvar alterações';
+  cycEditingBanner.innerHTML = `<div class="editing-banner">Editando "${escapeHtml(cycle.name)}"<button type="button" id="cyc-cancel-edit">cancelar</button></div>`;
+  document.getElementById('cyc-cancel-edit').addEventListener('click', cancelEditCycle);
+  document.getElementById('cyc-name').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function cancelEditCycle(){
+  editingCycleId = null;
+  formCycle.reset();
+  cycStartDateInput.value = new Date().toISOString().slice(0, 10);
+  cycItems = [];
+  addCycItem();
+  cycFormTitle.innerHTML = 'Novo ciclo <span class="n">// agenda</span>';
+  cycSubmitBtn.textContent = 'Cadastrar ciclo';
+  cycEditingBanner.innerHTML = '';
+}
+
 formCycle.addEventListener('submit', async (e) => {
   e.preventDefault();
   if (!db) return;
@@ -1531,29 +1777,37 @@ formCycle.addEventListener('submit', async (e) => {
     .map(it => ({ substanceId: it.substanceId, doseMl: parseFloat(it.doseMl), days: [...it.days].sort() }));
 
   if (!name || !time || !startDate || !items.length) {
-    alert('Preencha nome, horário, data de início, e ao menos uma substância com dose e pelo menos um dia marcado.');
+    showToast('Preencha nome, horário, data de início e ao menos uma substância com dose e dia marcado.', 'err');
     return;
   }
 
-  const makeActive = !cycles.some(c => c.active);
-
-  await addDoc(collection(db, 'cycles'), {
-    name, items, time, notes, startDate,
-    active: makeActive,
-    createdAt: serverTimestamp()
-  });
-  formCycle.reset();
-  cycStartDateInput.value = new Date().toISOString().slice(0, 10);
-  cycItems = [];
-  addCycItem();
+  if (editingCycleId) {
+    await updateDoc(doc(db, 'cycles', editingCycleId), { name, items, time, notes, startDate });
+    showToast('Alterações salvas.');
+    cancelEditCycle();
+  } else {
+    const makeActive = !cycles.some(c => c.active);
+    await addDoc(collection(db, 'cycles'), {
+      name, items, time, notes, startDate,
+      active: makeActive,
+      createdAt: serverTimestamp()
+    });
+    showToast('Ciclo cadastrado.');
+    formCycle.reset();
+    cycStartDateInput.value = new Date().toISOString().slice(0, 10);
+    cycItems = [];
+    addCycItem();
+  }
 });
 
 async function setActiveCycle(cycleId){
   if (!db) return;
+  const target = cycles.find(c => c.id === cycleId);
   const updates = cycles
     .filter(c => Boolean(c.active) !== (c.id === cycleId))
     .map(c => updateDoc(doc(db, 'cycles', c.id), { active: c.id === cycleId }));
   await Promise.all(updates);
+  if (target) showToast(`"${target.name}" marcado como ciclo atual.`);
 }
 
 function getCycleItems(c){
@@ -1592,7 +1846,10 @@ function renderCycles(){
             <div class="name">${escapeHtml(c.name)} ${c.active ? '<span class="badge">atual</span>' : ''}</div>
             <div class="meta">às ${c.time}${startLabel ? ' · ' + startLabel : ''}</div>
           </div>
-          <button class="btn danger" data-del-cyc="${c.id}">Remover</button>
+          <div class="card-actions">
+            <button class="btn ghost" data-edit-cyc="${c.id}">Editar</button>
+            <button class="btn danger" data-del-cyc="${c.id}">Remover</button>
+          </div>
         </div>
         <div class="cycle-substances">${subRows}</div>
         ${c.notes ? `<div class="meta" style="margin-top:8px;">${escapeHtml(c.notes)}</div>` : ''}
@@ -1600,11 +1857,20 @@ function renderCycles(){
       </div>`;
     }).join('');
 
+    list.querySelectorAll('[data-edit-cyc]').forEach(b => {
+      b.addEventListener('click', () => {
+        const cycle = cycles.find(c => c.id === b.dataset.editCyc);
+        if (cycle) startEditCycle(cycle);
+      });
+    });
+
     list.querySelectorAll('[data-del-cyc]').forEach(b => {
       b.addEventListener('click', async () => {
-        if (confirm('Remover este ciclo?')) {
-          await deleteDoc(doc(db, 'cycles', b.dataset.delCyc));
-        }
+        const ok = await confirmDialog('Remover este ciclo?');
+        if (!ok) return;
+        if (editingCycleId === b.dataset.delCyc) cancelEditCycle();
+        await deleteDoc(doc(db, 'cycles', b.dataset.delCyc));
+        showToast('Ciclo removido.');
       });
     });
 
@@ -1744,12 +2010,12 @@ formApplication.addEventListener('submit', async (e) => {
   });
 
   if (!entries.length) {
-    alert('Marque ao menos uma substância para registrar.');
+    showToast('Marque ao menos uma substância para registrar.', 'err');
     return;
   }
   const insufficient = entries.filter(en => en.ml > en.sub.availableMl);
   if (insufficient.length) {
-    alert('Quantidade aplicada maior que o estoque disponível para: ' + insufficient.map(en => en.sub.name).join(', '));
+    showToast('Quantidade aplicada maior que o estoque disponível para: ' + insufficient.map(en => en.sub.name).join(', '), 'err');
     return;
   }
 
@@ -1778,6 +2044,7 @@ formApplication.addEventListener('submit', async (e) => {
   regDatetimeInput.value = nowLocalDatetimeValue();
   refreshRegSubstancesList();
   closeModal('modal-registrar');
+  showToast(entries.length > 1 ? 'Aplicações registradas.' : 'Aplicação registrada.');
 });
 
 /* ============================================================
@@ -1819,6 +2086,10 @@ function renderHistory(){
             <div class="date">${timeStr}${extras ? ' · ' + escapeHtml(extras) : ''}</div>
           </div>
           <div class="hr">${fmt(a.mlApplied)} ml<br>${fmt(a.mgApplied)} mg</div>
+          <div class="hist-item-actions">
+            <button type="button" data-edit-app="${a.id}" title="Editar"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>
+            <button type="button" class="del" data-del-app="${a.id}" title="Apagar"><svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button>
+          </div>
         </div>`;
       }).join('');
       return `
@@ -1838,8 +2109,90 @@ function renderHistory(){
     </div>`;
   }).join('');
 
+  list.querySelectorAll('[data-edit-app]').forEach(b => {
+    b.addEventListener('click', () => {
+      const app = applications.find(a => a.id === b.dataset.editApp);
+      if (app) openEditApplication(app);
+    });
+  });
+
+  list.querySelectorAll('[data-del-app]').forEach(b => {
+    b.addEventListener('click', async () => {
+      const app = applications.find(a => a.id === b.dataset.delApp);
+      if (!app) return;
+      const ok = await confirmDialog(`Apagar o registro de "${app.substanceName}"? O estoque descontado será devolvido.`);
+      if (!ok) return;
+      const sub = substances.find(s => s.id === app.substanceId);
+      if (sub) await updateDoc(doc(db, 'substances', sub.id), { availableMl: increment(app.mlApplied) });
+      await deleteDoc(doc(db, 'applications', app.id));
+      showToast('Registro apagado e estoque devolvido.');
+    });
+  });
+
   renderDashboard();
 }
+
+/* ============================================================
+   7b) EDITAR APLICAÇÃO DO HISTÓRICO
+============================================================ */
+const formEditApplication = document.getElementById('form-edit-application');
+let editingApplicationId = null;
+
+function openEditApplication(app){
+  editingApplicationId = app.id;
+  const label = app.substanceName + (app.substanceNickname ? ` ("${app.substanceNickname}")` : '');
+  document.getElementById('edit-app-substance-name').textContent = label;
+  document.getElementById('edit-app-ml').value = app.mlApplied;
+  document.getElementById('edit-app-site').value = app.site || 'Outro';
+  document.getElementById('edit-app-notes').value = app.notes || '';
+  const date = app.appliedAt?.toDate ? app.appliedAt.toDate() : new Date();
+  const d = new Date(date);
+  d.setSeconds(0, 0);
+  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+  document.getElementById('edit-app-datetime').value = d.toISOString().slice(0, 16);
+  document.getElementById('edit-app-warning').innerHTML = '';
+  openModal('modal-edit-application');
+}
+
+formEditApplication.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (!db || !editingApplicationId) return;
+  const app = applications.find(a => a.id === editingApplicationId);
+  if (!app) return;
+  const newMl = parseFloat(document.getElementById('edit-app-ml').value);
+  const datetimeVal = document.getElementById('edit-app-datetime').value;
+  const site = document.getElementById('edit-app-site').value;
+  const notes = document.getElementById('edit-app-notes').value.trim();
+  if (isNaN(newMl) || newMl <= 0 || !datetimeVal) return;
+
+  const sub = substances.find(s => s.id === app.substanceId);
+  if (sub) {
+    const projectedAvailable = sub.availableMl + app.mlApplied - newMl;
+    if (projectedAvailable < 0) {
+      document.getElementById('edit-app-warning').innerHTML =
+        `<div class="banner warn">Quantidade maior que o estoque disponível (${fmt(sub.availableMl + app.mlApplied)} ml no total).</div>`;
+      return;
+    }
+  }
+
+  const newMg = sub ? sub.concentrationMgMl * newMl : app.mgApplied;
+
+  await updateDoc(doc(db, 'applications', editingApplicationId), {
+    mlApplied: newMl,
+    mgApplied: newMg,
+    site,
+    notes,
+    appliedAt: new Date(datetimeVal)
+  });
+
+  if (sub) {
+    await updateDoc(doc(db, 'substances', sub.id), { availableMl: increment(app.mlApplied - newMl) });
+  }
+
+  showToast('Aplicação atualizada.');
+  editingApplicationId = null;
+  closeModal('modal-edit-application');
+});
 
 /* ============================================================
    8) LISTENERS EM TEMPO REAL (ativos apenas com usuário logado)
