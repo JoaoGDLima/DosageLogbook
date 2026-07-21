@@ -3,29 +3,36 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dosage Logbook — Controle de Medicamentos</title>
+<title>Kronos — Controle de Medicamentos</title>
 <link rel="icon" type="image/svg+xml" href="icon/icon.svg">
 <link rel="apple-touch-icon" href="icon/icon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#0E1518;
-    --bg-alt:#121B1F;
-    --card:#182226;
-    --card-hi:#1E2A2F;
-    --line:#2A383E;
-    --ink:#E9F1F0;
-    --muted:#8AA0A3;
-    --teal:#4FD1C5;
-    --teal-dim:#2E6B66;
-    --amber:#E8B75D;
-    --danger:#E17B6B;
+    --bg:#FFFFFF;
+    --bg-alt:#F4F6FA;
+    --card:#FFFFFF;
+    --card-hi:#ECF0F6;
+    --line:#DFE4EC;
+    --ink:#12151C;
+    --muted:#626C7A;
+    --teal:#1B3E7A;
+    --teal-dim:#9FB3D6;
+    --amber:#B9791E;
+    --danger:#C0392B;
+    --danger-tint:#FBEAE7;
+    --danger-border:#E7B7AE;
+    --amber-tint:#FCF1DF;
+    --amber-border:#E9C892;
+    --ok-tint:#E7EDF7;
     --radius:10px;
     --mono:'IBM Plex Mono', monospace;
-    --sans:'IBM Plex Sans', sans-serif;
-    --display:'Fraunces', serif;
+    --sans:'Inter', sans-serif;
+    --display:'Sora', sans-serif;
+    --shadow-sm:0 1px 2px rgba(16,24,40,.06), 0 1px 3px rgba(16,24,40,.06);
+    --shadow-md:0 4px 14px rgba(16,24,40,.08), 0 2px 6px rgba(16,24,40,.05);
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
@@ -75,9 +82,10 @@
   .panel{
     background:var(--card);
     border:1px solid var(--line);
-    border-radius:var(--radius);
+    border-radius:16px;
     padding:20px;
     margin-bottom:18px;
+    box-shadow:var(--shadow-sm);
   }
   .panel h2{
     font-family:var(--display);
@@ -160,7 +168,7 @@
   .cyc-item-row button{
     flex:none;
     background:transparent;
-    border:1px solid #5A3733;
+    border:1px solid var(--danger-border);
     color:var(--danger);
     border-radius:6px;
     width:36px;
@@ -235,24 +243,28 @@
 
   button.btn{
     background:var(--teal);
-    color:#08201E;
+    color:#FFFFFF;
     border:none;
     font-family:var(--sans);
     font-weight:600;
     font-size:14px;
-    padding:11px 18px;
-    border-radius:6px;
+    padding:12px 20px;
+    border-radius:10px;
     cursor:pointer;
     margin-top:18px;
-    transition:filter .15s;
+    box-shadow:var(--shadow-sm);
+    transition:filter .15s, transform .1s, box-shadow .15s;
   }
-  button.btn:hover{filter:brightness(1.08);}
+  button.btn:hover{filter:brightness(1.12);box-shadow:var(--shadow-md);}
+  button.btn:active{transform:scale(.98);}
   button.btn.secondary{
-    background:transparent;
+    background:var(--card);
     color:var(--teal);
-    border:1px solid var(--teal-dim);
+    border:1px solid var(--line);
+    box-shadow:none;
   }
-  button.btn.danger{background:transparent;color:var(--danger);border:1px solid #5A3733;margin-top:0;padding:6px 10px;font-size:12px;}
+  button.btn.secondary:hover{background:var(--card-hi);}
+  button.btn.danger{background:transparent;color:var(--danger);border:1px solid var(--danger-border);margin-top:0;padding:6px 10px;font-size:12px;box-shadow:none;}
   button.btn:disabled{opacity:.4;cursor:not-allowed;}
 
   /* Vial gauge - signature element */
@@ -262,7 +274,7 @@
     align-items:stretch;
     background:var(--bg-alt);
     border:1px solid var(--line);
-    border-radius:8px;
+    border-radius:12px;
     padding:14px;
     margin-bottom:10px;
   }
@@ -272,7 +284,7 @@
     border:1px solid var(--line);
     border-radius:6px 6px 3px 3px;
     background:
-      repeating-linear-gradient(to top, transparent 0 7px, rgba(255,255,255,.05) 7px 8px);
+      repeating-linear-gradient(to top, transparent 0 7px, rgba(0,0,0,.045) 7px 8px);
     position:relative;
     overflow:hidden;
   }
@@ -294,7 +306,7 @@
   .cycle-card{
     background:var(--bg-alt);
     border:1px solid var(--line);
-    border-radius:8px;
+    border-radius:12px;
     padding:14px;
     margin-bottom:10px;
   }
@@ -315,7 +327,7 @@
     border-radius:8px;
     padding:16px;
     text-align:center;
-    background:rgba(79,209,197,.05);
+    background:var(--ok-tint);
   }
   .calc-readout .big{
     font-family:var(--mono);
@@ -362,9 +374,9 @@
     margin-bottom:16px;
     border:1px solid;
   }
-  .banner.warn{color:var(--amber);border-color:#5a4a2e;background:rgba(232,183,93,.06);}
-  .banner.err{color:var(--danger);border-color:#5a3229;background:rgba(225,123,107,.06);}
-  .banner.ok{color:var(--teal);border-color:var(--teal-dim);background:rgba(79,209,197,.06);}
+  .banner.warn{color:#8A5A14;border-color:var(--amber-border);background:var(--amber-tint);}
+  .banner.err{color:var(--danger);border-color:var(--danger-border);background:var(--danger-tint);}
+  .banner.ok{color:var(--teal);border-color:var(--teal-dim);background:var(--ok-tint);}
 
   select#reg-substance option{background:var(--bg-alt);}
   footer.foot{
@@ -384,6 +396,7 @@
     border:1px solid var(--line);
     border-radius:16px;
     padding:18px;
+    box-shadow:var(--shadow-sm);
   }
   .dash-card.wide{grid-column:1 / -1;}
   .dash-card .kicker{
@@ -451,11 +464,12 @@
     position:fixed;left:0;right:0;bottom:0;
     display:none;
     z-index:40;
-    background:rgba(14,21,24,.88);
+    background:rgba(255,255,255,.86);
     backdrop-filter:blur(14px);
     -webkit-backdrop-filter:blur(14px);
     border-top:1px solid var(--line);
     padding:6px 6px calc(6px + env(safe-area-inset-bottom));
+    box-shadow:0 -2px 12px rgba(16,24,40,.06);
   }
   body.logged-in nav.bottom-nav{display:flex;}
   nav.bottom-nav button{
@@ -486,20 +500,20 @@
   .fab{
     position:fixed;right:20px;bottom:82px;
     width:58px;height:58px;border-radius:50%;
-    background:var(--teal);color:#08201E;border:none;
+    background:var(--teal);color:#FFFFFF;border:none;
     display:none;align-items:center;justify-content:center;
-    box-shadow:0 10px 26px rgba(79,209,197,.32), 0 3px 10px rgba(0,0,0,.45);
+    box-shadow:0 10px 26px rgba(27,62,122,.28), 0 3px 10px rgba(16,24,40,.18);
     cursor:pointer;z-index:45;
     transition:transform .18s ease;
   }
   body.logged-in .fab{display:flex;}
   .fab:active{transform:scale(.9);}
-  .fab svg{width:26px;height:26px;stroke:#08201E;fill:none;stroke-width:2.4;stroke-linecap:round;transition:transform .25s ease;}
+  .fab svg{width:26px;height:26px;stroke:#FFFFFF;fill:none;stroke-width:2.4;stroke-linecap:round;transition:transform .25s ease;}
   .fab.open svg{transform:rotate(45deg);}
 
   .fab-overlay{
     position:fixed;inset:0;
-    background:rgba(6,10,12,.62);
+    background:rgba(15,20,32,.55);
     display:none;
     align-items:flex-end;
     justify-content:center;
@@ -580,7 +594,7 @@
     <div class="brand">
       <span class="mark">registro clínico pessoal</span>
     </div>
-    <h1>Dosage Logbook</h1>
+    <h1>Kronos</h1>
     <div class="sub">entre para acessar seu caderno de doses</div>
   </header>
 
@@ -607,7 +621,7 @@
       <span class="mark">registro clínico pessoal</span>
       <span class="mark" id="user-badge" style="margin-left:auto;cursor:pointer;" title="Sair">sair ↦</span>
     </div>
-    <h1>Dosage Logbook</h1>
+    <h1>Kronos</h1>
     <div class="sub">estoque · ciclos · aplicações registradas em tempo real</div>
   </header>
 
@@ -911,7 +925,8 @@ function translateAuthError(code){
     'auth/invalid-credential': 'E-mail ou senha incorretos.',
     'auth/email-already-in-use': 'Já existe uma conta com esse e-mail.',
     'auth/weak-password': 'A senha precisa ter pelo menos 6 caracteres.',
-    'auth/missing-password': 'Informe a senha.'
+    'auth/missing-password': 'Informe a senha.',
+    'auth/operation-not-allowed': 'Login por e-mail/senha ainda não está ativado no projeto Firebase (Authentication → Sign-in method).'
   };
   return map[code] || 'Não foi possível concluir. Tente novamente.';
 }
@@ -1362,13 +1377,19 @@ function refreshCycleSelect(){
   refreshRegSubstancesList();
 }
 
+function selectedWeekday(){
+  const val = regDatetimeInput.value;
+  const d = val ? new Date(val) : new Date();
+  return isNaN(d) ? new Date().getDay() : d.getDay(); // 0=Dom ... 6=Sáb, mesmo mapeamento usado nos ciclos
+}
+
 function refreshRegSubstancesList(){
   const cycle = cycles.find(c => c.id === regCycleSel.value);
-  const today = new Date().getDay(); // 0=Dom ... 6=Sáb, mesmo mapeamento usado nos ciclos
-  const items = cycle ? getCycleItems(cycle).filter(it => it.days.includes(today)) : [];
+  const weekday = selectedWeekday();
+  const items = cycle ? getCycleItems(cycle).filter(it => it.days.includes(weekday)) : [];
 
   if (!items.length) {
-    regSubstancesList.innerHTML = `<div class="empty-state">${cycle ? 'Nenhuma substância deste ciclo está agendada para hoje.' : 'Selecione um ciclo.'}</div>`;
+    regSubstancesList.innerHTML = `<div class="empty-state">${cycle ? 'Nenhuma substância deste ciclo está agendada para ' + WEEKDAY_FULL[weekday] + '.' : 'Selecione um ciclo.'}</div>`;
     updateCalcReadout();
     return;
   }
@@ -1396,6 +1417,7 @@ function refreshRegSubstancesList(){
 }
 
 regCycleSel.addEventListener('change', refreshRegSubstancesList);
+regDatetimeInput.addEventListener('change', refreshRegSubstancesList);
 
 function updateCalcReadout(){
   let totalMg = 0;
