@@ -541,6 +541,33 @@
   .stock-bar.low .fill{background:var(--amber);}
   .stock-bar.empty .fill{background:var(--danger);}
 
+  .cycle-strip{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    background:var(--ok-tint);border:1px solid var(--teal-dim);border-radius:12px;
+    padding:10px 16px;margin-bottom:14px;flex-wrap:wrap;
+  }
+  .cycle-strip .cs-left{display:flex;align-items:center;gap:8px;min-width:0;}
+  .cycle-strip .cs-left svg{width:16px;height:16px;stroke:var(--teal);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none;}
+  .cycle-strip .cs-name{font-size:13.5px;font-weight:600;color:var(--teal);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .cycle-strip .cs-since{font-family:var(--mono);font-size:11.5px;color:var(--muted);white-space:nowrap;}
+
+  .dash-compact-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:10px;}
+  .dash-compact-head .label{
+    display:flex;align-items:center;gap:6px;
+    font-family:var(--mono);font-size:11px;color:var(--muted);
+    text-transform:uppercase;letter-spacing:.06em;flex:none;
+  }
+  .dash-compact-head .label svg{width:14px;height:14px;stroke:var(--muted);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+  .dash-compact-head .time{font-family:var(--display);font-size:16px;font-weight:700;text-align:right;}
+
+  .chip-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+  .chip{
+    font-family:var(--sans);font-size:12px;padding:4px 11px;border-radius:20px;
+    background:var(--bg-alt);color:var(--ink);border:1px solid var(--line);
+  }
+  .dash-compact-total{font-family:var(--mono);font-size:12px;color:var(--muted);}
+  .dash-compact-total b{color:var(--ink);font-weight:600;}
+
 
   /* ===================== BOTTOM NAV ===================== */
   nav.bottom-nav{
@@ -823,11 +850,11 @@
   <!-- DASHBOARD -->
   <section class="view active" id="view-dashboard">
     <div id="dash-alert"></div>
+    <div class="cycle-strip" id="dash-cycle"></div>
     <div class="dash-grid">
       <div class="dash-card" id="dash-last"></div>
       <div class="dash-card" id="dash-next"></div>
-      <div class="dash-card" id="dash-cycle"></div>
-      <div class="dash-card" id="dash-week"></div>
+      <div class="dash-card wide" id="dash-week"></div>
       <div class="dash-card wide">
         <div class="kicker"><svg viewBox="0 0 24 24"><path d="M9 3h6M10 3v5l-5.5 9.5A2 2 0 0 0 6.2 21h11.6a2 2 0 0 0 1.7-3L14 8V3"/></svg>estoque de produtos</div>
         <div id="dash-stock-list" style="margin-top:12px;"></div>
@@ -1453,20 +1480,20 @@ function renderDashboard(){
     const date = first.appliedAt?.toDate ? first.appliedAt.toDate() : null;
     const totalMl = batch.reduce((sum, a) => sum + (a.mlApplied || 0), 0);
     const totalMg = batch.reduce((sum, a) => sum + (a.mgApplied || 0), 0);
-    const subsLabel = batch.map(a => escapeHtml(a.substanceName) + (a.substanceNickname ? ' <span style="color:var(--teal);font-weight:400;">"' + escapeHtml(a.substanceNickname) + '"</span>' : '')).join(', ');
+    const chips = batch.map(a => `<span class="chip">${escapeHtml(a.substanceName)}${a.substanceNickname ? ' "' + escapeHtml(a.substanceNickname) + '"' : ''}</span>`).join('');
     lastCard.innerHTML = `
-      <div class="kicker">${dashIcon('clock')}última aplicação</div>
-      <div class="big-value">${date ? formatRelative(date) : 'agora mesmo'}</div>
-      <div class="info-rows">
-        <div class="info-row"><span class="il">Protocolo</span><span class="ir">${escapeHtml(first.cycleName || '—')}</span></div>
-        <div class="info-row"><span class="il">Substâncias</span><span class="ir">${subsLabel}</span></div>
-        <div class="info-row"><span class="il">Total</span><span class="ir">${fmt(totalMl)} ml · ${fmt(totalMg)} mg</span></div>
+      <div class="dash-compact-head">
+        <span class="label">${dashIcon('clock')}última aplicação</span>
+        <span class="time">${date ? formatRelative(date) : 'agora mesmo'}</span>
       </div>
+      ${first.cycleName ? `<div class="chip-row"><span class="chip" style="background:var(--ok-tint);border-color:var(--teal-dim);color:var(--teal);">${escapeHtml(first.cycleName)}</span></div>` : ''}
+      <div class="chip-row">${chips}</div>
+      <div class="dash-compact-total">Total <b>${fmt(totalMl)} ml · ${fmt(totalMg)} mg</b></div>
     `;
   } else {
     lastCard.innerHTML = `
-      <div class="kicker">${dashIcon('clock')}última aplicação</div>
-      <div class="sub-value" style="margin-top:14px;">Nenhuma aplicação registrada ainda.</div>
+      <div class="dash-compact-head"><span class="label">${dashIcon('clock')}última aplicação</span></div>
+      <div class="sub-value">Nenhuma aplicação registrada ainda.</div>
     `;
   }
 
@@ -1488,47 +1515,40 @@ function renderDashboard(){
       const sub = substances.find(s => s.id === o.item.substanceId);
       return sum + (sub ? sub.concentrationMgMl * o.item.doseMl : 0);
     }, 0);
-    const subsLabel = batch.map(o => {
+    const chips = batch.map(o => {
       const sub = substances.find(s => s.id === o.item.substanceId);
-      const label = sub ? `${sub.name}${sub.nickname ? ' ("' + sub.nickname + '")' : ''}` : '(substância removida)';
-      return escapeHtml(label);
-    }).join(', ');
-    const protocolLabel = [...new Set(batch.map(o => o.cycle.name))].map(escapeHtml).join(', ');
+      const label = sub ? `${sub.name}${sub.nickname ? ' "' + sub.nickname + '"' : ''}` : '(substância removida)';
+      return `<span class="chip">${escapeHtml(label)}</span>`;
+    }).join('');
+    const protocolLabel = [...new Set(batch.map(o => o.cycle.name))].join(', ');
     nextCard.innerHTML = `
-      <div class="kicker">${dashIcon('calendar')}próxima aplicação</div>
-      <div class="big-value">${formatUpcoming(new Date(minTime))}</div>
-      <div class="info-rows">
-        <div class="info-row"><span class="il">Protocolo</span><span class="ir">${protocolLabel}</span></div>
-        <div class="info-row"><span class="il">Substâncias</span><span class="ir">${subsLabel}</span></div>
-        <div class="info-row"><span class="il">Total</span><span class="ir">${fmt(totalMl)} ml · ${fmt(totalMg)} mg</span></div>
+      <div class="dash-compact-head">
+        <span class="label">${dashIcon('calendar')}próxima aplicação</span>
+        <span class="time">${formatUpcoming(new Date(minTime))}</span>
       </div>
+      ${protocolLabel ? `<div class="chip-row"><span class="chip" style="background:var(--ok-tint);border-color:var(--teal-dim);color:var(--teal);">${escapeHtml(protocolLabel)}</span></div>` : ''}
+      <div class="chip-row">${chips}</div>
+      <div class="dash-compact-total">Total <b>${fmt(totalMl)} ml · ${fmt(totalMg)} mg</b></div>
     `;
   } else {
     nextCard.innerHTML = `
-      <div class="kicker">${dashIcon('calendar')}próxima aplicação</div>
-      <div class="sub-value" style="margin-top:14px;">Cadastre um ciclo com dias definidos para ver a previsão aqui.</div>
+      <div class="dash-compact-head"><span class="label">${dashIcon('calendar')}próxima aplicação</span></div>
+      <div class="sub-value">Cadastre um ciclo com dias definidos para ver a previsão aqui.</div>
     `;
   }
 
-  // ciclo atual
+  // ciclo atual (tira compacta no topo)
   const activeCycle = cycles.find(c => c.active);
   if (activeCycle) {
     const startLabel = activeCycle.startDate ? new Date(activeCycle.startDate + 'T00:00:00').toLocaleDateString('pt-BR') : '—';
     const daysSince = activeCycle.startDate ? Math.max(0, Math.round((now - new Date(activeCycle.startDate + 'T00:00:00')) / 86400000)) : null;
-    const itemCount = getCycleItems(activeCycle).length;
     cycleCard.innerHTML = `
-      <div class="kicker">${dashIcon('cycle')}ciclo atual</div>
-      <div class="big-value">${escapeHtml(activeCycle.name)}</div>
-      <div class="info-rows">
-        <div class="info-row"><span class="il">Iniciado em</span><span class="ir">${startLabel}</span></div>
-        ${daysSince !== null ? `<div class="info-row"><span class="il">Há</span><span class="ir">${daysSince} dia${daysSince === 1 ? '' : 's'}</span></div>` : ''}
-        <div class="info-row"><span class="il">Substâncias</span><span class="ir">${itemCount}</span></div>
-      </div>
+      <div class="cs-left">${dashIcon('cycle')}<span class="cs-name">${escapeHtml(activeCycle.name)}</span></div>
+      <span class="cs-since">iniciado em ${startLabel}${daysSince !== null ? ' · há ' + daysSince + ' dia' + (daysSince === 1 ? '' : 's') : ''}</span>
     `;
   } else {
     cycleCard.innerHTML = `
-      <div class="kicker">${dashIcon('cycle')}ciclo atual</div>
-      <div class="sub-value" style="margin-top:14px;">Nenhum ciclo marcado como atual. Abra um ciclo e toque em "Marcar como atual".</div>
+      <div class="cs-left">${dashIcon('cycle')}<span class="cs-name" style="color:var(--muted);font-weight:400;">Nenhum ciclo marcado como atual</span></div>
     `;
   }
 
