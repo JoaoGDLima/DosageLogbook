@@ -806,10 +806,7 @@
 <!-- TELA DE LOGIN -->
 <div class="wrap" id="login-screen" style="display:none;">
   <header class="top">
-    <div class="brand">
-      <span class="mark">registro clínico pessoal</span>
-    </div>
-    <h1>Kronos</h1>
+    <h1>Kronos <span class="mark" style="vertical-align:middle;margin-left:10px;">registro clínico pessoal</span></h1>
     <div class="sub">entre para acessar seu caderno de doses</div>
   </header>
 
@@ -833,11 +830,9 @@
 <div class="wrap" id="app-screen" style="display:none;">
   <header class="top">
     <div class="brand">
-      <span class="mark">registro clínico pessoal</span>
       <span class="mark" id="user-badge" style="margin-left:auto;cursor:pointer;" title="Sair">sair ↦</span>
     </div>
-    <h1>Kronos</h1>
-    <div class="sub">estoque · ciclos · aplicações registradas em tempo real</div>
+    <h1>Kronos <span class="mark" style="vertical-align:middle;margin-left:10px;">registro clínico pessoal</span></h1>
   </header>
 
   <div id="config-banner-app"></div>
@@ -852,8 +847,8 @@
     <div id="dash-alert"></div>
     <div class="cycle-strip" id="dash-cycle"></div>
     <div class="dash-grid">
-      <div class="dash-card" id="dash-last"></div>
-      <div class="dash-card" id="dash-next"></div>
+      <div class="dash-card wide" id="dash-last"></div>
+      <div class="dash-card wide" id="dash-next"></div>
       <div class="dash-card wide" id="dash-week"></div>
       <div class="dash-card wide">
         <div class="kicker"><svg viewBox="0 0 24 24"><path d="M9 3h6M10 3v5l-5.5 9.5A2 2 0 0 0 6.2 21h11.6a2 2 0 0 0 1.7-3L14 8V3"/></svg>estoque de produtos</div>
@@ -1402,6 +1397,14 @@ let applications = [];
 const WEEKDAY_LABELS = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
 const fmt = n => Number(n).toLocaleString('pt-BR', { maximumFractionDigits: 3 });
 
+function subLabel(sub){
+  if (!sub) return '(substância removida)';
+  return sub.nickname || sub.name;
+}
+function appSubLabel(a){
+  return a.substanceNickname || a.substanceName;
+}
+
 function stockLevelClass(sub){
   if (sub.availableMl <= 0) return 'empty';
   if (sub.availableMl <= sub.startMl * 0.15) return 'low';
@@ -1480,7 +1483,7 @@ function renderDashboard(){
     const date = first.appliedAt?.toDate ? first.appliedAt.toDate() : null;
     const totalMl = batch.reduce((sum, a) => sum + (a.mlApplied || 0), 0);
     const totalMg = batch.reduce((sum, a) => sum + (a.mgApplied || 0), 0);
-    const chips = batch.map(a => `<span class="chip">${escapeHtml(a.substanceName)}${a.substanceNickname ? ' "' + escapeHtml(a.substanceNickname) + '"' : ''}</span>`).join('');
+    const chips = batch.map(a => `<span class="chip">${escapeHtml(appSubLabel(a))}</span>`).join('');
     lastCard.innerHTML = `
       <div class="dash-compact-head">
         <span class="label">${dashIcon('clock')}última aplicação</span>
@@ -1517,7 +1520,7 @@ function renderDashboard(){
     }, 0);
     const chips = batch.map(o => {
       const sub = substances.find(s => s.id === o.item.substanceId);
-      const label = sub ? `${sub.name}${sub.nickname ? ' "' + sub.nickname + '"' : ''}` : '(substância removida)';
+      const label = subLabel(sub);
       return `<span class="chip">${escapeHtml(label)}</span>`;
     }).join('');
     const protocolLabel = [...new Set(batch.map(o => o.cycle.name))].join(', ');
@@ -1601,7 +1604,7 @@ function renderDashboard(){
       return `
       <div class="dash-stock-row">
         <div class="dsr-top">
-          <span class="dsr-name">${escapeHtml(s.name)}${s.nickname ? ' <span style="color:var(--teal);font-weight:400;">"' + escapeHtml(s.nickname) + '"</span>' : ''}</span>
+          <span class="dsr-name">${escapeHtml(subLabel(s))}</span>
           <span class="dsr-meta">${fmt(s.availableMl)} ml</span>
         </div>
         <div class="stock-bar ${levelClass}"><div class="fill" style="width:${pct}%"></div></div>
@@ -1682,6 +1685,7 @@ function renderSubstances(){
   list.innerHTML = substances.map(s => {
     const pct = s.startMl > 0 ? Math.max(0, Math.min(100, (s.availableMl / s.startMl) * 100)) : 0;
     const extras = [
+      s.nickname ? `nome: ${s.name}` : '',
       s.brand ? `marca: ${s.brand}` : '',
       s.purchaseDate ? `comprado em ${new Date(s.purchaseDate + 'T00:00:00').toLocaleDateString('pt-BR')}` : ''
     ].filter(Boolean).join(' · ');
@@ -1689,7 +1693,7 @@ function renderSubstances(){
     <div class="substance-card">
       <div class="vial ${stockLevelClass(s)}"><div class="fill" style="height:${pct}%"></div></div>
       <div class="sub-info">
-        <div class="name">${escapeHtml(s.name)}${s.nickname ? ` <span style="color:var(--teal);font-weight:400;">"${escapeHtml(s.nickname)}"</span>` : ''}</div>
+        <div class="name">${escapeHtml(subLabel(s))}</div>
         <div class="meta">${fmt(s.concentrationMgMl)} mg/ml${extras ? ' · ' + escapeHtml(extras) : ''}</div>
         <div class="stock">disponível: <b>${fmt(s.availableMl)} ml</b> de ${fmt(s.startMl)} ml</div>
       </div>
@@ -1723,7 +1727,7 @@ function renderSubstances(){
 function substanceOptionsHtml(){
   if (!substances.length) return `<option value="">Cadastre uma substância primeiro</option>`;
   return `<option value="">Selecione...</option>` + substances.map(s =>
-    `<option value="${s.id}">${escapeHtml(s.name)}${s.nickname ? ' ("' + escapeHtml(s.nickname) + '")' : ''} — ${fmt(s.concentrationMgMl)} mg/ml (${fmt(s.availableMl)} ml disp.)</option>`
+    `<option value="${s.id}">${escapeHtml(subLabel(s))} — ${fmt(s.concentrationMgMl)} mg/ml (${fmt(s.availableMl)} ml disp.)</option>`
   ).join('');
 }
 
@@ -1897,7 +1901,7 @@ function renderCycles(){
       const items = getCycleItems(c);
       const subRows = items.map(it => {
         const sub = substances.find(s => s.id === it.substanceId);
-        const label = sub ? `${sub.name}${sub.nickname ? ' ("' + sub.nickname + '")' : ''}` : '(substância removida)';
+        const label = subLabel(sub);
         const dayPills = WEEKDAY_LABELS.map((lb, i) =>
           `<span class="${it.days.includes(i) ? 'on' : ''}">${lb}</span>`).join('');
         return `
@@ -1997,7 +2001,7 @@ function refreshRegSubstancesList(){
 
   regSubstancesList.innerHTML = items.map((it, idx) => {
     const sub = substances.find(s => s.id === it.substanceId);
-    const label = sub ? `${sub.name}${sub.nickname ? ' ("' + sub.nickname + '")' : ''}` : '(substância removida)';
+    const label = subLabel(sub);
     return `
     <div class="reg-sub-row" data-substance-id="${it.substanceId}">
       <label class="chk">
@@ -2152,7 +2156,7 @@ function renderHistory(){
         return `
         <div class="history-item">
           <div>
-            <div class="hl">${escapeHtml(a.substanceName)}${a.substanceNickname ? ` <span style="color:var(--teal);font-weight:400;">"${escapeHtml(a.substanceNickname)}"</span>` : ''}</div>
+            <div class="hl">${escapeHtml(appSubLabel(a))}</div>
             <div class="date">${timeStr}${extras ? ' · ' + escapeHtml(extras) : ''}</div>
           </div>
           <div class="hr">${fmt(a.mlApplied)} ml<br>${fmt(a.mgApplied)} mg</div>
@@ -2210,7 +2214,7 @@ let editingApplicationId = null;
 
 function openEditApplication(app){
   editingApplicationId = app.id;
-  const label = app.substanceName + (app.substanceNickname ? ` ("${app.substanceNickname}")` : '');
+  const label = appSubLabel(app);
   document.getElementById('edit-app-substance-name').textContent = label;
   document.getElementById('edit-app-ml').value = app.mlApplied;
   document.getElementById('edit-app-site').value = app.site || 'Outro';
