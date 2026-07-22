@@ -1426,6 +1426,11 @@ function nextOccurrence(dayOfWeek, timeStr, now){
   return candidate;
 }
 
+function getBatchEntries(app){
+  if (app.batchId) return applications.filter(a => a.batchId === app.batchId);
+  return [app];
+}
+
 function renderDashboard(){
   const alertBox = document.getElementById('dash-alert');
   const lastCard = document.getElementById('dash-last');
@@ -1441,18 +1446,21 @@ function renderDashboard(){
     ? `<div class="banner warn">Estoque pede atenção: ${lowStock.map(s => escapeHtml(s.name) + (s.availableMl <= 0 ? ' (esgotada)' : ' (baixo)')).join(' · ')}.</div>`
     : '';
 
-  // última aplicação
+  // última aplicação (agrupada por lote de registro)
   if (applications.length) {
-    const a = applications[0];
-    const date = a.appliedAt?.toDate ? a.appliedAt.toDate() : null;
+    const batch = getBatchEntries(applications[0]);
+    const first = batch[0];
+    const date = first.appliedAt?.toDate ? first.appliedAt.toDate() : null;
+    const totalMl = batch.reduce((sum, a) => sum + (a.mlApplied || 0), 0);
+    const totalMg = batch.reduce((sum, a) => sum + (a.mgApplied || 0), 0);
+    const subsLabel = batch.map(a => escapeHtml(a.substanceName) + (a.substanceNickname ? ' <span style="color:var(--teal);font-weight:400;">"' + escapeHtml(a.substanceNickname) + '"</span>' : '')).join(', ');
     lastCard.innerHTML = `
       <div class="kicker">${dashIcon('clock')}última aplicação</div>
-      <div class="big-value">${escapeHtml(a.substanceName)}${a.substanceNickname ? ' <span style="color:var(--teal);font-weight:400;">"' + escapeHtml(a.substanceNickname) + '"</span>' : ''}</div>
+      <div class="big-value">${date ? formatRelative(date) : 'agora mesmo'}</div>
       <div class="info-rows">
-        <div class="info-row"><span class="il">Quando</span><span class="ir">${date ? formatRelative(date) : 'agora mesmo'}</span></div>
-        <div class="info-row"><span class="il">Dose</span><span class="ir">${fmt(a.mlApplied)} ml · ${fmt(a.mgApplied)} mg</span></div>
-        ${a.site ? `<div class="info-row"><span class="il">Local</span><span class="ir">${escapeHtml(a.site)}</span></div>` : ''}
-        ${a.cycleName ? `<div class="info-row"><span class="il">Protocolo</span><span class="ir">${escapeHtml(a.cycleName)}</span></div>` : ''}
+        <div class="info-row"><span class="il">Protocolo</span><span class="ir">${escapeHtml(first.cycleName || '—')}</span></div>
+        <div class="info-row"><span class="il">Substâncias</span><span class="ir">${subsLabel}</span></div>
+        <div class="info-row"><span class="il">Total</span><span class="ir">${fmt(totalMl)} ml · ${fmt(totalMg)} mg</span></div>
       </div>
     `;
   } else {
@@ -1462,30 +1470,37 @@ function renderDashboard(){
     `;
   }
 
-  // próxima aplicação (com base nos ciclos e dias por substância)
+  // próxima aplicação (agrupa substâncias previstas para o mesmo dia/horário)
   const now = new Date();
-  let nextEntry = null;
+  const occurrences = [];
   cycles.forEach(c => {
     getCycleItems(c).forEach(it => {
       (it.days || []).forEach(d => {
-        const date = nextOccurrence(d, c.time, now);
-        if (!nextEntry || date < nextEntry.date) {
-          nextEntry = { date, sub: substances.find(s => s.id === it.substanceId), cycle: c, doseMl: it.doseMl };
-        }
+        occurrences.push({ date: nextOccurrence(d, c.time, now), cycle: c, item: it });
       });
     });
   });
-  if (nextEntry) {
-    const label = nextEntry.sub
-      ? `${nextEntry.sub.name}${nextEntry.sub.nickname ? ' ("' + nextEntry.sub.nickname + '")' : ''}`
-      : '(substância removida)';
+  if (occurrences.length) {
+    const minTime = Math.min(...occurrences.map(o => o.date.getTime()));
+    const batch = occurrences.filter(o => o.date.getTime() === minTime);
+    const totalMl = batch.reduce((sum, o) => sum + (parseFloat(o.item.doseMl) || 0), 0);
+    const totalMg = batch.reduce((sum, o) => {
+      const sub = substances.find(s => s.id === o.item.substanceId);
+      return sum + (sub ? sub.concentrationMgMl * o.item.doseMl : 0);
+    }, 0);
+    const subsLabel = batch.map(o => {
+      const sub = substances.find(s => s.id === o.item.substanceId);
+      const label = sub ? `${sub.name}${sub.nickname ? ' ("' + sub.nickname + '")' : ''}` : '(substância removida)';
+      return escapeHtml(label);
+    }).join(', ');
+    const protocolLabel = [...new Set(batch.map(o => o.cycle.name))].map(escapeHtml).join(', ');
     nextCard.innerHTML = `
       <div class="kicker">${dashIcon('calendar')}próxima aplicação</div>
-      <div class="big-value">${formatUpcoming(nextEntry.date)}</div>
+      <div class="big-value">${formatUpcoming(new Date(minTime))}</div>
       <div class="info-rows">
-        <div class="info-row"><span class="il">Substância</span><span class="ir">${escapeHtml(label)}</span></div>
-        <div class="info-row"><span class="il">Dose</span><span class="ir">${fmt(nextEntry.doseMl)} ml</span></div>
-        <div class="info-row"><span class="il">Protocolo</span><span class="ir">${escapeHtml(nextEntry.cycle.name)}</span></div>
+        <div class="info-row"><span class="il">Protocolo</span><span class="ir">${protocolLabel}</span></div>
+        <div class="info-row"><span class="il">Substâncias</span><span class="ir">${subsLabel}</span></div>
+        <div class="info-row"><span class="il">Total</span><span class="ir">${fmt(totalMl)} ml · ${fmt(totalMg)} mg</span></div>
       </div>
     `;
   } else {
@@ -1533,6 +1548,7 @@ function renderDashboard(){
     const d = a.appliedAt?.toDate ? a.appliedAt.toDate() : null;
     return d && d >= dayBuckets[0].date;
   });
+  const weekBatchCount = new Set(weekApps.map(a => a.batchId || a.id)).size;
   const weekMg = dayBuckets.reduce((sum, b) => sum + b.mg, 0);
   const maxMg = Math.max(1, ...dayBuckets.map(b => b.mg));
   const barsHtml = dayBuckets.map(b => {
@@ -1547,7 +1563,7 @@ function renderDashboard(){
   weekCard.innerHTML = `
     <div class="kicker">${dashIcon('trend')}últimos 7 dias</div>
     <div class="stat-row">
-      <div><div class="stat-num">${weekApps.length}</div><div class="sub-value">aplicações</div></div>
+      <div><div class="stat-num">${weekBatchCount}</div><div class="sub-value">aplicações</div></div>
       <div><div class="stat-num">${fmt(weekMg)}</div><div class="sub-value">mg totais</div></div>
     </div>
     <div class="chart-bars">${barsHtml}</div>
@@ -2052,10 +2068,12 @@ formApplication.addEventListener('submit', async (e) => {
   }
 
   const appliedAtDate = new Date(datetimeVal);
+  const batchId = (crypto.randomUUID ? crypto.randomUUID() : 'b' + Date.now() + Math.random().toString(36).slice(2));
 
   for (const { sub, ml } of entries) {
     const mg = sub.concentrationMgMl * ml;
     await addDoc(userCollection('applications'), {
+      batchId,
       substanceId: sub.id,
       substanceName: sub.name,
       substanceNickname: sub.nickname || '',
