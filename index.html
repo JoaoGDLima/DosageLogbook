@@ -522,6 +522,8 @@
   .exam-item-top button:hover{color:var(--danger);background:var(--danger-tint);}
   .exam-values{display:flex;flex-wrap:wrap;gap:12px;}
   .exam-val{display:flex;flex-direction:column;gap:2px;}
+  .exam-val[data-field-key]{cursor:pointer;padding:3px 6px;margin:-3px -6px;border-radius:6px;transition:background .15s;}
+  .exam-val[data-field-key]:hover{background:var(--card-hi);}
   .exam-val-label{font-family:var(--mono);font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;}
   .exam-val-num{font-family:var(--mono);font-size:12.5px;font-weight:600;color:var(--teal);}
   .exam-val.out .exam-val-num{color:var(--danger);}
@@ -3247,7 +3249,8 @@ function renderExamList(){
       .filter(f => ex[f.key] !== undefined && ex[f.key] !== null && ex[f.key] !== '')
       .map(f => {
         const outOfRange = isExamOutOfRange(f, ex[f.key]);
-        return `<span class="exam-val${outOfRange ? ' out' : ''}"><span class="exam-val-label">${escapeHtml(f.label)}${outOfRange ? ' ⚠' : ''}</span><span class="exam-val-num">${typeof ex[f.key] === 'number' ? fmt(ex[f.key]) : escapeHtml(String(ex[f.key]))} ${f.unit}</span></span>`;
+        const clickable = f.ref ? ` data-field-key="${f.key}"` : '';
+        return `<span class="exam-val${outOfRange ? ' out' : ''}"${clickable}><span class="exam-val-label">${escapeHtml(f.label)}${outOfRange ? ' ⚠' : ''}</span><span class="exam-val-num">${typeof ex[f.key] === 'number' ? fmt(ex[f.key]) : escapeHtml(String(ex[f.key]))} ${f.unit}</span></span>`;
       })
       .join('');
     return `
@@ -3260,7 +3263,20 @@ function renderExamList(){
       ${ex.notes ? `<div class="symptom-notes">${escapeHtml(ex.notes)}</div>` : ''}
     </div>`;
   }).join('');
-  box.insertAdjacentHTML('beforeend', `<div class="exam-ref-note">⚠ = fora da faixa de referência geral usada pelo app. Faixas variam por laboratório e contexto — não é orientação médica.</div>`);
+  box.insertAdjacentHTML('beforeend', `<div class="exam-ref-note">⚠ = fora da faixa de referência geral usada pelo app. Toque num valor para ver a faixa. Faixas variam por laboratório e contexto — não é orientação médica.</div>`);
+
+  box.querySelectorAll('.exam-val[data-field-key]').forEach(el => {
+    el.addEventListener('click', () => {
+      const field = EXAM_FIELDS.find(f => f.key === el.dataset.fieldKey);
+      if (!field || !field.ref) return;
+      const { min, max } = field.ref;
+      const refText = min !== null && max !== null ? `${fmt(min)}–${fmt(max)} ${field.unit}`
+        : min !== null ? `acima de ${fmt(min)} ${field.unit}`
+        : max !== null ? `até ${fmt(max)} ${field.unit}`
+        : 'sem faixa definida';
+      showToast(`${field.label} — referência: ${refText}`);
+    });
+  });
 
   box.querySelectorAll('[data-del-exam]').forEach(b => {
     b.addEventListener('click', async () => {
@@ -3374,10 +3390,7 @@ function renderReport(){
     if (!fromDate) return true;
     return new Date(s.date + 'T00:00:00') >= fromDate;
   });
-  const periodExams = bloodTests.filter(ex => {
-    if (!fromDate) return true;
-    return new Date(ex.date + 'T00:00:00') >= fromDate;
-  });
+  const periodExams = bloodTests; // exames mostram sempre o mais recente, sem filtro de período
 
   const activeCycle = cycles.find(c => c.active);
   const userEmail = (auth && auth.currentUser) ? auth.currentUser.email : '';
@@ -3479,10 +3492,10 @@ function renderReport(){
       html += `</tbody></table>`;
     }
     if (periodExams.length > 1) {
-      html += `<div class="report-empty" style="margin-top:8px;">+ ${periodExams.length - 1} exame(s) anterior(es) nesse período.</div>`;
+      html += `<div class="report-empty" style="margin-top:8px;">+ ${periodExams.length - 1} exame(s) anterior(es) no histórico.</div>`;
     }
   } else {
-    html += `<div class="report-empty">Nenhum exame registrado nesse período.</div>`;
+    html += `<div class="report-empty">Nenhum exame registrado ainda.</div>`;
   }
 
   html += `<h3>Sintomas e sensações</h3>`;
@@ -3531,10 +3544,7 @@ function buildReportShareText(){
     if (!fromDate) return true;
     return new Date(s.date + 'T00:00:00') >= fromDate;
   });
-  const periodExams = bloodTests.filter(ex => {
-    if (!fromDate) return true;
-    return new Date(ex.date + 'T00:00:00') >= fromDate;
-  });
+  const periodExams = bloodTests; // exames mostram sempre o mais recente, sem filtro de período
   const activeCycle = cycles.find(c => c.active);
 
   const lines = [
@@ -3601,7 +3611,7 @@ function buildReportShareText(){
       const out = isExamOutOfRange(f, val);
       lines.push(`- ${f.label}: ${typeof val === 'number' ? fmt(val) : val} ${f.unit}${out ? ' (fora da faixa)' : ''}`);
     });
-    if (periodExams.length > 1) lines.push(`+ ${periodExams.length - 1} exame(s) anterior(es) nesse período.`);
+    if (periodExams.length > 1) lines.push(`+ ${periodExams.length - 1} exame(s) anterior(es) no histórico.`);
   }
 
   if (periodSymptoms.length) {
