@@ -1,0 +1,17 @@
+{
+  "name": "Kronos — Registro clínico pessoal",
+  "short_name": "Kronos",
+  "description": "Controle de estoque, ciclos e aplicações — registro clínico pessoal.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FFFFFF",
+  "theme_color": "#1B3E7A",
+  "icons": [
+    { "src": "icon/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "icon/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

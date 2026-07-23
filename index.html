@@ -6,6 +6,12 @@
 <title>Kronos — Controle de Medicamentos</title>
 <link rel="icon" type="image/svg+xml" href="icon/icon.svg">
 <link rel="apple-touch-icon" href="icon/icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1B3E7A">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Kronos">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -518,6 +524,9 @@
   .exam-val{display:flex;flex-direction:column;gap:2px;}
   .exam-val-label{font-family:var(--mono);font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;}
   .exam-val-num{font-family:var(--mono);font-size:12.5px;font-weight:600;color:var(--teal);}
+  .exam-val.out .exam-val-num{color:var(--danger);}
+  .exam-val.out .exam-val-label{color:var(--danger);}
+  .exam-ref-note{margin-top:12px;font-size:11px;color:var(--muted);line-height:1.5;}
 
   .cal-nav{display:flex;align-items:center;justify-content:space-between;margin-top:14px;margin-bottom:10px;}
   .cal-nav button{
@@ -684,7 +693,9 @@
     display:flex;align-items:center;justify-content:space-between;gap:10px;
     background:var(--ok-tint);border:1px solid var(--teal-dim);border-radius:12px;
     padding:10px 16px;margin-bottom:14px;flex-wrap:wrap;
+    cursor:pointer;transition:background .15s;
   }
+  .cycle-strip:hover{background:#DCE7F5;}
   .cycle-strip .cs-left{display:flex;align-items:center;gap:8px;min-width:0;}
   .cycle-strip .cs-left svg{width:16px;height:16px;stroke:var(--teal);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none;}
   .cycle-strip .cs-name{font-size:13.5px;font-weight:600;color:var(--teal);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -1442,8 +1453,34 @@
       </div>
 
       <div class="panel">
+        <h2>Evolução <span class="n">// gráfico</span></h2>
+        <label style="margin-top:0;">Marcador</label>
+        <select id="exam-chart-field"></select>
+        <div id="exam-chart"></div>
+      </div>
+
+      <div class="panel">
         <h2>Exames registrados <span class="n" id="exam-count"></span></h2>
         <div id="exam-list"><div class="empty-state">Nenhum exame registrado ainda.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: DETALHES DO CICLO -->
+<div class="modal-overlay" id="modal-cycle-detail">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <h2>Detalhes do ciclo</h2>
+      <button type="button" class="modal-close" data-close-modal aria-label="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="panel">
+        <div id="cycle-detail-content"></div>
+        <div class="row" style="margin-top:16px;">
+          <button type="button" class="btn secondary" id="cycle-detail-whatsapp" style="margin-top:0;">Compartilhar</button>
+          <button type="button" class="btn" id="cycle-detail-edit" style="margin-top:0;">Editar ciclo</button>
+        </div>
       </div>
     </div>
   </div>
@@ -1838,6 +1875,28 @@ function stockLevelClass(sub){
   return '';
 }
 
+function estimateDaysRemaining(sub){
+  if (sub.availableMl <= 0) return 0;
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - 30);
+  const recent = applications.filter(a => {
+    if (a.substanceId !== sub.id) return false;
+    const d = a.appliedAt?.toDate ? a.appliedAt.toDate() : null;
+    return d && d >= cutoff;
+  });
+  if (!recent.length) return null;
+  const totalMl = recent.reduce((s, a) => s + (a.mlApplied || 0), 0);
+  let earliest = new Date();
+  recent.forEach(a => {
+    const d = a.appliedAt.toDate();
+    if (d < earliest) earliest = d;
+  });
+  const daysSpan = Math.max(1, Math.round((new Date() - earliest) / 86400000) + 1);
+  const dailyRate = totalMl / daysSpan;
+  if (dailyRate <= 0) return null;
+  return Math.round(sub.availableMl / dailyRate);
+}
+
 /* ============================================================
    3b) DASHBOARD
 ============================================================ */
@@ -2168,11 +2227,13 @@ function renderDashboard(){
     stockList.innerHTML = sorted.map(s => {
       const pct = s.startMl > 0 ? Math.max(0, Math.min(100, (s.availableMl / s.startMl) * 100)) : 0;
       const levelClass = stockLevelClass(s);
+      const daysLeft = estimateDaysRemaining(s);
+      const daysLabel = daysLeft === null ? '' : (daysLeft <= 0 ? ' · esgota agora' : ` · ~${daysLeft} dia${daysLeft === 1 ? '' : 's'} restantes`);
       return `
       <div class="dash-stock-row">
         <div class="dsr-top">
           <span class="dsr-name">${escapeHtml(subLabel(s))}</span>
-          <span class="dsr-meta">${fmt(s.availableMl)} ml</span>
+          <span class="dsr-meta">${fmt(s.availableMl)} ml${daysLabel}</span>
         </div>
         <div class="stock-bar ${levelClass}"><div class="fill" style="width:${pct}%"></div></div>
       </div>`;
@@ -2258,13 +2319,15 @@ function renderSubstances(){
       s.brand ? `marca: ${s.brand}` : '',
       s.purchaseDate ? `comprado em ${new Date(s.purchaseDate + 'T00:00:00').toLocaleDateString('pt-BR')}` : ''
     ].filter(Boolean).join(' · ');
+    const daysLeft = estimateDaysRemaining(s);
+    const daysLabel = daysLeft === null ? '' : (daysLeft <= 0 ? ' · esgota agora' : ` · ~${daysLeft} dia${daysLeft === 1 ? '' : 's'} restantes no ritmo atual`);
     return `
     <div class="substance-card">
       <div class="vial ${stockLevelClass(s)}"><div class="fill" style="height:${pct}%"></div></div>
       <div class="sub-info">
         <div class="name">${escapeHtml(subLabel(s))}</div>
         <div class="meta">${fmt(s.concentrationMgMl)} mg/ml${extras ? ' · ' + escapeHtml(extras) : ''}</div>
-        <div class="stock">disponível: <b>${fmt(s.availableMl)} ml</b> de ${fmt(s.startMl)} ml</div>
+        <div class="stock">disponível: <b>${fmt(s.availableMl)} ml</b> de ${fmt(s.startMl)} ml${daysLabel}</div>
       </div>
       <div class="sub-actions">
         <button class="btn ghost" data-edit-sub="${s.id}">Editar</button>
@@ -2459,12 +2522,15 @@ formCycle.addEventListener('submit', async (e) => {
     showToast('Alterações salvas.');
     cancelEditCycle();
   } else {
-    const makeActive = !cycles.some(c => c.active);
-    await addDoc(userCollection('cycles'), {
+    const hadNoActive = !cycles.some(c => c.active);
+    const docRef = await addDoc(userCollection('cycles'), {
       name, items, time, notes, startDate, weeks: weeksVal,
-      active: makeActive,
+      active: false,
       createdAt: serverTimestamp()
     });
+    if (hadNoActive) {
+      await updateDoc(docRef, { active: true });
+    }
     showToast('Ciclo cadastrado.');
     formCycle.reset();
     cycStartDateInput.value = new Date().toISOString().slice(0, 10);
@@ -2549,6 +2615,67 @@ function shareCycleOnWhatsApp(cycle){
   const text = encodeURIComponent(lines.join('\n'));
   window.open(`https://wa.me/?text=${text}`, '_blank');
 }
+
+let cycleDetailId = null;
+
+function openCycleDetail(cycle){
+  cycleDetailId = cycle.id;
+  const content = document.getElementById('cycle-detail-content');
+  const items = getCycleItems(cycle);
+  const stats = getCycleStats(cycle);
+  const startLabel = cycle.startDate ? new Date(cycle.startDate + 'T00:00:00').toLocaleDateString('pt-BR') : '—';
+
+  let html = `
+    <div class="report-header" style="border-bottom:2px solid var(--line);padding-bottom:14px;margin-bottom:6px;">
+      <div class="rh-title">${escapeHtml(cycle.name)} ${cycle.active ? '<span class="badge">atual</span>' : ''}</div>
+      <div class="rh-meta">às ${cycle.time || '—'}</div>
+    </div>
+    <div class="report-stats">
+      <div class="rs-item"><span class="rs-label">Início</span><span class="rs-val" style="font-size:14px;">${startLabel}</span></div>
+      ${stats.weeks ? `<div class="rs-item"><span class="rs-label">Termina em</span><span class="rs-val" style="font-size:14px;">${stats.endDate.toLocaleDateString('pt-BR')}</span></div>` : ''}
+      ${stats.weeks ? `<div class="rs-item"><span class="rs-label">Duração</span><span class="rs-val" style="font-size:14px;">${stats.weeks} semana${stats.weeks === 1 ? '' : 's'}</span></div>` : ''}
+    </div>
+  `;
+
+  if (stats.weeks) {
+    html += `<div class="report-stats" style="margin-top:10px;">
+      <div class="rs-item"><span class="rs-label">Aplicações previstas</span><span class="rs-val">${stats.expectedApplications}</span></div>
+      <div class="rs-item"><span class="rs-label">Total do ciclo</span><span class="rs-val">${fmt(stats.totalMl)} ml</span></div>
+      <div class="rs-item"><span class="rs-label">&nbsp;</span><span class="rs-val">${fmt(stats.totalMg)} mg</span></div>
+    </div>`;
+  }
+
+  html += `<h3>Substâncias</h3>`;
+  html += `<table class="report-table"><thead><tr><th>Substância</th><th>Dose</th><th>mg/aplicação</th><th>Dias</th></tr></thead><tbody>`;
+  items.forEach(it => {
+    const sub = substances.find(s => s.id === it.substanceId);
+    const dayLabels = (it.days || []).map(d => WEEKDAY_LABELS[d]).join(', ');
+    const mgEach = sub ? fmt(sub.concentrationMgMl * it.doseMl) : '—';
+    html += `<tr><td>${escapeHtml(subLabel(sub))}</td><td>${fmt(it.doseMl)} ml</td><td>${mgEach} mg</td><td>${escapeHtml(dayLabels)}</td></tr>`;
+  });
+  html += `</tbody></table>`;
+
+  if (cycle.notes) html += `<h3>Observações</h3><div class="report-empty" style="color:var(--ink);">${escapeHtml(cycle.notes)}</div>`;
+
+  content.innerHTML = html;
+  openModal('modal-cycle-detail');
+}
+
+document.getElementById('dash-cycle').addEventListener('click', () => {
+  const activeCycle = cycles.find(c => c.active);
+  if (activeCycle) openCycleDetail(activeCycle);
+});
+document.getElementById('cycle-detail-whatsapp').addEventListener('click', () => {
+  const cycle = cycles.find(c => c.id === cycleDetailId);
+  if (cycle) shareCycleOnWhatsApp(cycle);
+});
+document.getElementById('cycle-detail-edit').addEventListener('click', () => {
+  const cycle = cycles.find(c => c.id === cycleDetailId);
+  if (!cycle) return;
+  closeModal('modal-cycle-detail');
+  openModal('modal-ciclos');
+  startEditCycle(cycle);
+});
 
 function renderCycles(){
   const list = document.getElementById('cycle-list');
@@ -3040,34 +3167,40 @@ function renderSymptomList(){
    7c-2) EXAMES DE SANGUE
 ============================================================ */
 const EXAM_FIELDS = [
-  { key: 'testTotal', id: 'exam-test-total', label: 'Testosterona total', unit: 'ng/dL' },
-  { key: 'testFree', id: 'exam-test-free', label: 'Testosterona livre', unit: 'pg/mL' },
-  { key: 'estradiol', id: 'exam-estradiol', label: 'Estradiol', unit: 'pg/mL' },
-  { key: 'shbg', id: 'exam-shbg', label: 'SHBG', unit: 'nmol/L' },
-  { key: 'lh', id: 'exam-lh', label: 'LH', unit: 'mUI/mL' },
-  { key: 'fsh', id: 'exam-fsh', label: 'FSH', unit: 'mUI/mL' },
-  { key: 'prolactin', id: 'exam-prolactin', label: 'Prolactina', unit: 'ng/mL' },
-  { key: 'cholTotal', id: 'exam-chol-total', label: 'Colesterol total', unit: 'mg/dL' },
-  { key: 'triglycerides', id: 'exam-triglycerides', label: 'Triglicerídeos', unit: 'mg/dL' },
-  { key: 'hdl', id: 'exam-hdl', label: 'HDL', unit: 'mg/dL' },
-  { key: 'ldl', id: 'exam-ldl', label: 'LDL', unit: 'mg/dL' },
-  { key: 'ast', id: 'exam-ast', label: 'TGO (AST)', unit: 'U/L' },
-  { key: 'alt', id: 'exam-alt', label: 'TGP (ALT)', unit: 'U/L' },
-  { key: 'ggt', id: 'exam-ggt', label: 'Gama GT', unit: 'U/L' },
-  { key: 'bilirubin', id: 'exam-bilirubin', label: 'Bilirrubina total', unit: 'mg/dL' },
-  { key: 'creatinine', id: 'exam-creatinine', label: 'Creatinina', unit: 'mg/dL' },
-  { key: 'urea', id: 'exam-urea', label: 'Ureia', unit: 'mg/dL' },
-  { key: 'gfr', id: 'exam-gfr', label: 'TFG', unit: 'mL/min' },
-  { key: 'hemoglobin', id: 'exam-hemoglobin', label: 'Hemoglobina', unit: 'g/dL' },
-  { key: 'hematocrit', id: 'exam-hematocrit', label: 'Hematócrito', unit: '%' },
-  { key: 'rbc', id: 'exam-rbc', label: 'Hemácias', unit: 'milhões/mm³' },
-  { key: 'psa', id: 'exam-psa', label: 'PSA', unit: 'ng/mL' },
-  { key: 'glucose', id: 'exam-glucose', label: 'Glicemia', unit: 'mg/dL' },
-  { key: 'tsh', id: 'exam-tsh', label: 'TSH', unit: 'µUI/mL' }
+  { key: 'testTotal', id: 'exam-test-total', label: 'Testosterona total', unit: 'ng/dL', ref: { min: 300, max: 1000 } },
+  { key: 'testFree', id: 'exam-test-free', label: 'Testosterona livre', unit: 'pg/mL', ref: { min: 9, max: 30 } },
+  { key: 'estradiol', id: 'exam-estradiol', label: 'Estradiol', unit: 'pg/mL', ref: { min: 10, max: 40 } },
+  { key: 'shbg', id: 'exam-shbg', label: 'SHBG', unit: 'nmol/L', ref: { min: 10, max: 57 } },
+  { key: 'lh', id: 'exam-lh', label: 'LH', unit: 'mUI/mL', ref: { min: 1.7, max: 8.6 } },
+  { key: 'fsh', id: 'exam-fsh', label: 'FSH', unit: 'mUI/mL', ref: { min: 1.5, max: 12.4 } },
+  { key: 'prolactin', id: 'exam-prolactin', label: 'Prolactina', unit: 'ng/mL', ref: { min: 4, max: 15.2 } },
+  { key: 'cholTotal', id: 'exam-chol-total', label: 'Colesterol total', unit: 'mg/dL', ref: { min: null, max: 200 } },
+  { key: 'triglycerides', id: 'exam-triglycerides', label: 'Triglicerídeos', unit: 'mg/dL', ref: { min: null, max: 150 } },
+  { key: 'hdl', id: 'exam-hdl', label: 'HDL', unit: 'mg/dL', ref: { min: 40, max: null } },
+  { key: 'ldl', id: 'exam-ldl', label: 'LDL', unit: 'mg/dL', ref: { min: null, max: 130 } },
+  { key: 'ast', id: 'exam-ast', label: 'TGO (AST)', unit: 'U/L', ref: { min: 10, max: 40 } },
+  { key: 'alt', id: 'exam-alt', label: 'TGP (ALT)', unit: 'U/L', ref: { min: 7, max: 56 } },
+  { key: 'ggt', id: 'exam-ggt', label: 'Gama GT', unit: 'U/L', ref: { min: 8, max: 61 } },
+  { key: 'bilirubin', id: 'exam-bilirubin', label: 'Bilirrubina total', unit: 'mg/dL', ref: { min: 0.3, max: 1.2 } },
+  { key: 'creatinine', id: 'exam-creatinine', label: 'Creatinina', unit: 'mg/dL', ref: { min: 0.7, max: 1.3 } },
+  { key: 'urea', id: 'exam-urea', label: 'Ureia', unit: 'mg/dL', ref: { min: 7, max: 20 } },
+  { key: 'gfr', id: 'exam-gfr', label: 'TFG', unit: 'mL/min', ref: { min: 90, max: null } },
+  { key: 'hemoglobin', id: 'exam-hemoglobin', label: 'Hemoglobina', unit: 'g/dL', ref: { min: 13.5, max: 17.5 } },
+  { key: 'hematocrit', id: 'exam-hematocrit', label: 'Hematócrito', unit: '%', ref: { min: 38.8, max: 50 } },
+  { key: 'rbc', id: 'exam-rbc', label: 'Hemácias', unit: 'milhões/mm³', ref: { min: 4.5, max: 5.9 } },
+  { key: 'psa', id: 'exam-psa', label: 'PSA', unit: 'ng/mL', ref: { min: null, max: 4 } },
+  { key: 'glucose', id: 'exam-glucose', label: 'Glicemia', unit: 'mg/dL', ref: { min: 70, max: 99 } },
+  { key: 'tsh', id: 'exam-tsh', label: 'TSH', unit: 'µUI/mL', ref: { min: 0.4, max: 4.0 } }
 ];
 const EXAM_TEXT_FIELDS = [
   { key: 'bp', id: 'exam-bp', label: 'Pressão arterial', unit: 'mmHg' }
 ];
+
+function isExamOutOfRange(field, value){
+  if (!field.ref || typeof value !== 'number') return false;
+  const { min, max } = field.ref;
+  return (min !== null && value < min) || (max !== null && value > max);
+}
 
 const formExam = document.getElementById('form-exam');
 const examDateInput = document.getElementById('exam-date');
@@ -3112,7 +3245,10 @@ function renderExamList(){
     const dateLabel = new Date(ex.date + 'T00:00:00').toLocaleDateString('pt-BR');
     const vals = allFields
       .filter(f => ex[f.key] !== undefined && ex[f.key] !== null && ex[f.key] !== '')
-      .map(f => `<span class="exam-val"><span class="exam-val-label">${escapeHtml(f.label)}</span><span class="exam-val-num">${typeof ex[f.key] === 'number' ? fmt(ex[f.key]) : escapeHtml(String(ex[f.key]))} ${f.unit}</span></span>`)
+      .map(f => {
+        const outOfRange = isExamOutOfRange(f, ex[f.key]);
+        return `<span class="exam-val${outOfRange ? ' out' : ''}"><span class="exam-val-label">${escapeHtml(f.label)}${outOfRange ? ' ⚠' : ''}</span><span class="exam-val-num">${typeof ex[f.key] === 'number' ? fmt(ex[f.key]) : escapeHtml(String(ex[f.key]))} ${f.unit}</span></span>`;
+      })
       .join('');
     return `
     <div class="exam-item">
@@ -3124,6 +3260,7 @@ function renderExamList(){
       ${ex.notes ? `<div class="symptom-notes">${escapeHtml(ex.notes)}</div>` : ''}
     </div>`;
   }).join('');
+  box.insertAdjacentHTML('beforeend', `<div class="exam-ref-note">⚠ = fora da faixa de referência geral usada pelo app. Faixas variam por laboratório e contexto — não é orientação médica.</div>`);
 
   box.querySelectorAll('[data-del-exam]').forEach(b => {
     b.addEventListener('click', async () => {
@@ -3133,7 +3270,85 @@ function renderExamList(){
       showToast('Exame apagado.');
     });
   });
+
+  renderExamChart();
 }
+
+function renderExamChart(){
+  const sel = document.getElementById('exam-chart-field');
+  const box = document.getElementById('exam-chart');
+  if (!sel || !box) return;
+
+  const fieldsWithData = EXAM_FIELDS.filter(f => bloodTests.some(ex => typeof ex[f.key] === 'number'));
+  const current = sel.value;
+  sel.innerHTML = fieldsWithData.length
+    ? fieldsWithData.map(f => `<option value="${f.key}">${escapeHtml(f.label)}</option>`).join('')
+    : `<option value="">Sem dados suficientes ainda</option>`;
+  if ([...sel.options].some(o => o.value === current)) sel.value = current;
+
+  const field = EXAM_FIELDS.find(f => f.key === sel.value);
+  if (!field) {
+    box.innerHTML = `<div class="empty-state">Registre ao menos um valor numérico para ver o gráfico.</div>`;
+    return;
+  }
+
+  const points = bloodTests
+    .filter(ex => typeof ex[field.key] === 'number')
+    .map(ex => ({ date: new Date(ex.date + 'T00:00:00'), value: ex[field.key] }))
+    .sort((a, b) => a.date - b.date);
+
+  if (points.length < 2) {
+    box.innerHTML = `<div class="empty-state">Precisa de pelo menos 2 registros com "${escapeHtml(field.label)}" para desenhar o gráfico.</div>`;
+    return;
+  }
+
+  const w = 600, h = 180, padL = 8, padR = 8, padT = 16, padB = 26;
+  const values = points.map(p => p.value);
+  let minV = Math.min(...values), maxV = Math.max(...values);
+  if (field.ref) {
+    if (field.ref.min !== null) minV = Math.min(minV, field.ref.min);
+    if (field.ref.max !== null) maxV = Math.max(maxV, field.ref.max);
+  }
+  if (minV === maxV) { minV -= 1; maxV += 1; }
+  const rangePad = (maxV - minV) * 0.15;
+  minV -= rangePad; maxV += rangePad;
+
+  const xFor = i => padL + (points.length === 1 ? 0 : (i / (points.length - 1)) * (w - padL - padR));
+  const yFor = v => padT + (1 - (v - minV) / (maxV - minV)) * (h - padT - padB);
+
+  let refBand = '';
+  if (field.ref && (field.ref.min !== null || field.ref.max !== null)) {
+    const yTop = field.ref.max !== null ? yFor(field.ref.max) : padT;
+    const yBot = field.ref.min !== null ? yFor(field.ref.min) : h - padB;
+    refBand = `<rect x="${padL}" y="${yTop.toFixed(1)}" width="${w - padL - padR}" height="${Math.max(0, yBot - yTop).toFixed(1)}" fill="var(--ok-tint)"/>`;
+  }
+
+  const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${xFor(i).toFixed(1)} ${yFor(p.value).toFixed(1)}`).join(' ');
+  const dots = points.map((p, i) => {
+    const out = isExamOutOfRange(field, p.value);
+    return `<circle cx="${xFor(i).toFixed(1)}" cy="${yFor(p.value).toFixed(1)}" r="3.5" fill="${out ? 'var(--danger)' : 'var(--teal)'}"/>`;
+  }).join('');
+  const labelStep = Math.max(1, Math.ceil(points.length / 6));
+  const labels = points.map((p, i) => {
+    if (i % labelStep !== 0 && i !== points.length - 1) return '';
+    return `<text x="${xFor(i).toFixed(1)}" y="${h - 8}" font-size="9" fill="var(--muted)" text-anchor="middle" font-family="monospace">${p.date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}</text>`;
+  }).join('');
+  const lastVal = points[points.length - 1].value;
+  const refLabel = field.ref && (field.ref.min !== null || field.ref.max !== null)
+    ? ` · faixa de referência ${field.ref.min !== null ? fmt(field.ref.min) : ''}${field.ref.min !== null && field.ref.max !== null ? '–' : ''}${field.ref.max !== null ? fmt(field.ref.max) : ''} ${field.unit}`
+    : '';
+
+  box.innerHTML = `
+    <svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto;margin-top:10px;display:block;">
+      ${refBand}
+      <path d="${pathD}" fill="none" stroke="var(--teal)" stroke-width="2"/>
+      ${dots}
+      ${labels}
+    </svg>
+    <div class="dash-compact-total" style="margin-top:4px;">Último valor <b>${fmt(lastVal)} ${field.unit}</b>${refLabel}</div>
+  `;
+}
+document.getElementById('exam-chart-field').addEventListener('change', renderExamChart);
 
 /* ============================================================
    7d) RELATÓRIO PARA CONSULTA MÉDICA
@@ -3158,6 +3373,10 @@ function renderReport(){
   const periodSymptoms = symptoms.filter(s => {
     if (!fromDate) return true;
     return new Date(s.date + 'T00:00:00') >= fromDate;
+  });
+  const periodExams = bloodTests.filter(ex => {
+    if (!fromDate) return true;
+    return new Date(ex.date + 'T00:00:00') >= fromDate;
   });
 
   const activeCycle = cycles.find(c => c.active);
@@ -3241,6 +3460,31 @@ function renderReport(){
     html += `<div class="report-empty">Nenhuma aplicação nesse período.</div>`;
   }
 
+  html += `<h3>Exames de sangue</h3>`;
+  if (periodExams.length) {
+    const latestExam = periodExams[0];
+    const examDateLabel = new Date(latestExam.date + 'T00:00:00').toLocaleDateString('pt-BR');
+    html += `<div class="report-stats"><div class="rs-item"><span class="rs-label">Mais recente</span><span class="rs-val" style="font-size:14px;">${examDateLabel}${latestExam.lab ? ' · ' + escapeHtml(latestExam.lab) : ''}</span></div></div>`;
+    const filledFields = [...EXAM_FIELDS, ...EXAM_TEXT_FIELDS].filter(f => latestExam[f.key] !== undefined && latestExam[f.key] !== null && latestExam[f.key] !== '');
+    if (filledFields.length) {
+      html += `<table class="report-table" style="margin-top:10px;"><thead><tr><th>Marcador</th><th>Valor</th><th>Referência</th></tr></thead><tbody>`;
+      filledFields.forEach(f => {
+        const val = latestExam[f.key];
+        const out = isExamOutOfRange(f, val);
+        const refText = f.ref && (f.ref.min !== null || f.ref.max !== null)
+          ? `${f.ref.min !== null ? fmt(f.ref.min) : ''}${f.ref.min !== null && f.ref.max !== null ? '–' : ''}${f.ref.max !== null ? fmt(f.ref.max) : ''}`
+          : '—';
+        html += `<tr><td>${escapeHtml(f.label)}</td><td${out ? ' style="color:var(--danger);font-weight:600;"' : ''}>${typeof val === 'number' ? fmt(val) : escapeHtml(String(val))} ${f.unit}${out ? ' ⚠' : ''}</td><td>${refText}</td></tr>`;
+      });
+      html += `</tbody></table>`;
+    }
+    if (periodExams.length > 1) {
+      html += `<div class="report-empty" style="margin-top:8px;">+ ${periodExams.length - 1} exame(s) anterior(es) nesse período.</div>`;
+    }
+  } else {
+    html += `<div class="report-empty">Nenhum exame registrado nesse período.</div>`;
+  }
+
   html += `<h3>Sintomas e sensações</h3>`;
   if (periodSymptoms.length) {
     const avg = key => (periodSymptoms.reduce((s, x) => s + (x[key] || 0), 0) / periodSymptoms.length).toFixed(1);
@@ -3286,6 +3530,10 @@ function buildReportShareText(){
   const periodSymptoms = symptoms.filter(s => {
     if (!fromDate) return true;
     return new Date(s.date + 'T00:00:00') >= fromDate;
+  });
+  const periodExams = bloodTests.filter(ex => {
+    if (!fromDate) return true;
+    return new Date(ex.date + 'T00:00:00') >= fromDate;
   });
   const activeCycle = cycles.find(c => c.active);
 
@@ -3341,6 +3589,19 @@ function buildReportShareText(){
     });
   } else {
     lines.push('- Nenhuma aplicação nesse período.');
+  }
+
+  if (periodExams.length) {
+    const latestExam = periodExams[0];
+    lines.push('');
+    lines.push(`Exame mais recente: ${new Date(latestExam.date + 'T00:00:00').toLocaleDateString('pt-BR')}${latestExam.lab ? ' — ' + latestExam.lab : ''}`);
+    const filledFields = [...EXAM_FIELDS, ...EXAM_TEXT_FIELDS].filter(f => latestExam[f.key] !== undefined && latestExam[f.key] !== null && latestExam[f.key] !== '');
+    filledFields.forEach(f => {
+      const val = latestExam[f.key];
+      const out = isExamOutOfRange(f, val);
+      lines.push(`- ${f.label}: ${typeof val === 'number' ? fmt(val) : val} ${f.unit}${out ? ' (fora da faixa)' : ''}`);
+    });
+    if (periodExams.length > 1) lines.push(`+ ${periodExams.length - 1} exame(s) anterior(es) nesse período.`);
   }
 
   if (periodSymptoms.length) {
@@ -3424,6 +3685,13 @@ function stopDataListeners(){
   unsubscribers = [];
   substances = []; cycles = []; applications = []; symptoms = []; bloodTests = [];
 }
+</script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    });
+  }
 </script>
 </body>
 </html>

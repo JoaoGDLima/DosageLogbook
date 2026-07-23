@@ -1,4 +1,4 @@
-# Dosage Logbook
+# Kronos
 
 App de página única (`index.html`) para cadastrar medicamentos/suplementos, registrar
 ciclos de aplicação e manter um histórico com controle de estoque. Os dados ficam no
@@ -25,20 +25,26 @@ Firestore, do seu próprio projeto Firebase.
 
 1. No menu lateral, vá em **Build → Firestore Database → Criar banco de dados**.
 2. Escolha a região mais próxima e inicie em **modo produção**.
-3. Em **Regras**, cole o conteúdo abaixo — ele exige login para ler ou escrever
-   qualquer dado, então mesmo com a URL do projeto em mãos ninguém sem conta
-   consegue acessar:
+3. Em **Regras**, cole o conteúdo abaixo — cada usuário só consegue ler e escrever
+   os próprios dados (guardados em `/users/{seu-uid}/...`), mesmo estando todos no
+   mesmo projeto Firebase:
 
    ```
    rules_version = '2';
    service cloud.firestore {
      match /databases/{database}/documents {
-       match /{document=**} {
-         allow read, write: if request.auth != null;
+       match /users/{userId}/{document=**} {
+         allow read, write: if request.auth != null && request.auth.uid == userId;
        }
      }
    }
    ```
+
+   > Se você já usava o app antes dessa mudança, os dados antigos ficaram nas
+   > coleções antigas (`substances`, `cycles`, `applications`, na raiz do banco) e
+   > não aparecem mais — o app agora lê e escreve em `/users/{uid}/...`. Se quiser
+   > recuperar esses dados antigos, dá pra copiá-los manualmente pelo console do
+   > Firebase para dentro da pasta do seu usuário.
 
 ## 4. Editar o `index.html`
 
@@ -69,32 +75,83 @@ const firebaseConfig = {
 
 - **Login**: a primeira tela pede e-mail e senha. Use "criar acesso" na primeira vez;
   depois disso, é só entrar normalmente. O botão "sair" fica no topo do app.
-- **Início (Dashboard)**: tela inicial com a última aplicação registrada, a previsão
-  da próxima aplicação (calculada a partir dos ciclos), um resumo dos últimos 7 dias
-  (nº de aplicações e mg totais), um alerta quando algum produto está com estoque
-  baixo ou zerado, e a visão geral do estoque de todas as substâncias.
-- **Substâncias**: cadastra nome, apelido (opcional) concentração (mg/ml) e volume
-  disponível (ml). Cada uma aparece com um indicador visual do estoque restante,
-  e o apelido é mostrado entre aspas ao lado do nome nas listagens e seletores.
-- **Ciclos**: define um nome e o horário, e adiciona uma ou mais substâncias ao
-  ciclo — cada substância tem sua própria dose (ml) e seus próprios dias da semana
-  (use "+ Adicionar substância" para incluir mais de uma).
-- **Registrar**: escolhe o ciclo e o app já mostra, marcadas, todas as substâncias
-  daquele ciclo agendadas para o dia de hoje, com a dose de cada uma pré-preenchida
-  (editável). Dá pra desmarcar as que não vai aplicar e registrar várias substâncias
-  de uma vez só. A data e hora vêm preenchidas com o momento atual, também editável.
-  O app calcula o total em mg antes de salvar e desconta cada quantidade do estoque
-  da respectiva substância.
-- **Histórico**: lista todas as aplicações registradas, com data/hora, ml e mg.
+- **Início (Dashboard)**: tela inicial com a última aplicação registrada (dose, local,
+  protocolo), a previsão da próxima aplicação, o ciclo marcado como atual (com a data
+  de início), um resumo dos últimos 7 dias com um mini gráfico de mg aplicados por dia,
+  um alerta quando algum produto está com estoque baixo ou zerado, e a visão geral do
+  estoque de todas as substâncias com barra de progresso.
+- **Substâncias** (modal, aberto pelo botão flutuante): cadastra nome, apelido, marca
+  e data de compra (opcionais), concentração (mg/ml) e volume disponível (ml). Cada uma
+  aparece com um indicador visual do estoque restante.
+- **Ciclos** (modal): define um nome, horário, data de início, e adiciona uma ou mais
+  substâncias ao ciclo — cada substância tem sua própria dose (ml) e seus próprios dias
+  da semana. Um dos ciclos pode ser marcado como "atual" (botão "Marcar como atual" em
+  cada card) — é esse que aparece no dashboard. Informando também a **duração em
+  semanas**, o app calcula sozinho a data de término, quantas aplicações são esperadas
+  no total, e os totais previstos de ml/mg (por semana e do ciclo inteiro) — essas
+  previsões aparecem no card do ciclo, no relatório e na mensagem de WhatsApp.
+- **Registrar** (modal): escolhe o ciclo e o app mostra, marcadas, as substâncias
+  agendadas para o dia da data selecionada (mudar a data recalcula a lista). Dá pra
+  desmarcar as que não vai aplicar e registrar várias de uma vez. Também pede o local
+  de aplicação (glúteo, deltoide, vasto lateral, ventroglúteo — esquerdo/direito — ou
+  outro). O app calcula o total em ml e mg antes de salvar, e desconta cada quantidade
+  do estoque da respectiva substância.
+- **Histórico**: lista as aplicações agrupadas por protocolo (ciclo) e, dentro de cada
+  protocolo, por dia (recolhido por padrão, mostrando só a data e os totais — toque
+  para expandir e ver/editar/apagar cada substância). Logo abaixo fica a lista de
+  registros de sintomas.
+- **Calendário de adesão** (na tela Início): visão de mês mostrando quais dias tiveram
+  aplicação de fato (verde), quais estavam previstos pelo ciclo mas não foram cumpridos
+  (vermelho), e quais estão previstos para o futuro (contorno tracejado).
+- **Sintomas e sensações**: registro rápido (humor, energia, sono, libido de 1 a 5,
+  efeitos colaterais e observações) pelo botão flutuante. Aparece listado na aba
+  Histórico.
+- **Exames de sangue**: registro de valores de exames, pelo botão flutuante — hormonal
+  (testosterona total/livre, estradiol, LH, FSH, prolactina, SHBG), perfil lipídico
+  (colesterol total, HDL, LDL, triglicerídeos), função hepática (TGO, TGP, Gama GT,
+  bilirrubina), função renal (creatinina, ureia, TFG), hematológico (hemoglobina,
+  hematócrito, hemácias) e outros (PSA, glicemia, TSH, pressão arterial), além de data
+  da coleta e laboratório. Todos os campos são opcionais — preencha só o que constar
+  no seu exame. Valores fora da faixa de referência geral usada pelo app aparecem
+  marcados com ⚠ (essas faixas são genéricas e variam por laboratório — não é
+  orientação médica). O mesmo modal tem um **gráfico de evolução**: escolha um
+  marcador e veja como ele mudou ao longo do tempo, com a faixa de referência
+  destacada no fundo do gráfico.
+- **Relatório**: na aba Histórico, o botão "Relatório" monta um resumo (ciclo atual,
+  adesão, totais por substância, exame mais recente do período e sintomas) pronto
+  para imprimir ou salvar como PDF pelo próprio navegador, ou compartilhar via
+  WhatsApp — útil para levar numa consulta médica.
+- **Previsão de término do estoque**: no Início e na lista de Substâncias, cada item
+  mostra uma estimativa de quantos dias o estoque ainda dura, calculada pelo ritmo de
+  aplicações registradas nos últimos 30 dias. Só aparece quando há histórico
+  suficiente para calcular.
+- **Lembretes**: o sino no topo (ao lado de "sair") ativa notificações do navegador
+  perto do horário da próxima aplicação prevista. Funciona enquanto a aba/o app estiver
+  aberto — é uma limitação do navegador, não dá pra disparar notificação com o app
+  totalmente fechado sem um servidor por trás. Na primeira vez, o navegador vai pedir
+  permissão de notificação.
+
+### Instalar como app
+
+O Kronos agora tem um `manifest.webmanifest` e um `sw.js` (service worker mínimo)
+que permitem instalá-lo na tela inicial do celular ou do computador, abrindo em
+tela cheia, sem a barra do navegador — como um app nativo. No Chrome/Edge (Android
+e desktop), aparece um botão "Instalar" ou "Adicionar à tela inicial" na barra de
+endereço ou no menu; no Safari/iOS, use Compartilhar → "Adicionar à Tela de Início".
+Isso exige subir os arquivos `manifest.webmanifest` e `sw.js` junto com o
+`index.html`, na raiz do repositório (mesma pasta, sem mudar nada de configuração
+extra).
 
 ### Navegação
 
-- **No celular**: uma barra de navegação fixa embaixo (Início · Estoque · Ciclos ·
-  Histórico) e um botão flutuante (+) no canto inferior direito. Tocando nele, abre
-  um menu com "Registrar aplicação", "Nova substância" e "Novo ciclo" — ao escolher
-  uma opção, o app já leva direto pra tela correspondente.
-- **No desktop** (telas a partir de 640px): as mesmas seções ficam em abas no topo,
-  incluindo "Registrar", sem o botão flutuante.
+A navegação por abas (topo no desktop, embaixo no celular) tem só **Início** e
+**Histórico**. Os cadastros — Substâncias, Ciclos e Registrar aplicação — ficam em
+telas modais, acessadas pelo botão flutuante (+) no canto inferior direito: tocando
+nele, abre um menu para escolher qual cadastro abrir.
 
 Todos os dados sincronizam em tempo real com o Firestore — se você abrir o app em
-dois dispositivos logados no mesmo projeto, ambos atualizam automaticamente.
+dois dispositivos logados na mesma conta, ambos atualizam automaticamente.
+
+Cada conta (e-mail/senha) tem seus próprios registros, isolados dos de outras
+contas — se mais de uma pessoa usar o mesmo projeto Firebase, cada uma só vê e
+mexe nos seus próprios cadastros, ciclos e histórico.
