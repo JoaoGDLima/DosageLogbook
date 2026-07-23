@@ -166,6 +166,19 @@
     font-family:var(--mono);font-size:13px;font-weight:600;color:var(--teal);
     width:20px;text-align:center;flex:none;
   }
+  .chip-select{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
+  .chip-select label{
+    display:flex;align-items:center;margin:0;
+    padding:7px 13px;border-radius:20px;
+    border:1px solid var(--line);background:var(--bg-alt);
+    font-family:var(--sans);font-size:12.5px;font-weight:400;color:var(--ink);
+    text-transform:none;letter-spacing:normal;
+    cursor:pointer;transition:background .15s,border-color .15s,color .15s;
+  }
+  .chip-select input{display:none;}
+  .chip-select label:has(input:checked){
+    background:var(--ok-tint);border-color:var(--teal-dim);color:var(--teal);font-weight:600;
+  }
   .row{display:flex;gap:14px;flex-wrap:wrap;}
   .row > div{flex:1;min-width:150px;}
 
@@ -260,6 +273,17 @@
     border-radius:3px;padding:1px 5px;color:var(--muted);
   }
   .cycle-substances .cs-days span.on{color:var(--teal);border-color:var(--teal-dim);}
+
+  .cs-forecast{
+    margin-top:10px;padding:10px 12px;
+    background:var(--ok-tint);border:1px solid var(--teal-dim);border-radius:10px;
+  }
+  .cs-forecast-row{
+    display:flex;justify-content:space-between;gap:10px;
+    font-size:12px;padding:4px 0;
+  }
+  .cs-forecast-row span{color:var(--muted);}
+  .cs-forecast-row b{font-family:var(--mono);color:var(--teal);font-weight:600;}
 
   .reg-sub-row{
     display:flex;
@@ -369,6 +393,10 @@
     padding:16px;
     background:var(--ok-tint);
   }
+  .cyc-forecast{
+    margin-top:12px;padding:14px;
+    border:1px solid var(--teal-dim);border-radius:12px;background:var(--ok-tint);
+  }
   .calc-readout .calc-totals{
     display:flex;
     justify-content:center;
@@ -464,6 +492,32 @@
   .sym-stat-label{font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;}
   .sym-stat-val{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--teal);}
   .symptom-notes{margin-top:8px;font-size:13px;color:var(--ink);line-height:1.5;}
+
+  .exam-section{
+    font-family:var(--display);font-size:13px;font-weight:700;
+    color:var(--teal);margin:22px 0 4px;padding-bottom:6px;
+    border-bottom:1px solid var(--teal-dim);text-transform:uppercase;letter-spacing:.03em;
+  }
+  .exam-section:first-of-type{margin-top:18px;}
+
+  .exam-item{
+    background:var(--bg-alt);border:1px solid var(--line);border-radius:12px;
+    padding:12px 14px;margin-bottom:10px;
+  }
+  .exam-item:last-child{margin-bottom:0;}
+  .exam-item-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+  .exam-date{font-family:var(--mono);font-size:12.5px;font-weight:600;color:var(--ink);}
+  .exam-item-top button{
+    width:28px;height:28px;border-radius:8px;border:1px solid var(--line);
+    background:var(--card);color:var(--muted);cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .exam-item-top button svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+  .exam-item-top button:hover{color:var(--danger);background:var(--danger-tint);}
+  .exam-values{display:flex;flex-wrap:wrap;gap:12px;}
+  .exam-val{display:flex;flex-direction:column;gap:2px;}
+  .exam-val-label{font-family:var(--mono);font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;}
+  .exam-val-num{font-family:var(--mono);font-size:12.5px;font-weight:600;color:var(--teal);}
 
   .cal-nav{display:flex;align-items:center;justify-content:space-between;margin-top:14px;margin-bottom:10px;}
   .cal-nav button{
@@ -1094,7 +1148,12 @@
               <label>Data de início</label>
               <input type="date" id="cyc-start-date" required>
             </div>
+            <div>
+              <label>Duração (semanas)</label>
+              <input type="number" id="cyc-weeks" min="1" step="1" placeholder="Ex: 12">
+            </div>
           </div>
+          <div id="cyc-forecast"></div>
 
           <label>Observações (opcional)</label>
           <textarea id="cyc-notes" rows="2" placeholder="Notas do ciclo..."></textarea>
@@ -1259,11 +1318,132 @@
             </div>
           </div>
 
+          <label>Efeitos colaterais (opcional)</label>
+          <div class="chip-select" id="sym-side-effects">
+            <label><input type="checkbox" value="Acne"><span>Acne</span></label>
+            <label><input type="checkbox" value="Perda de libido"><span>Perda de libido</span></label>
+            <label><input type="checkbox" value="Queda de cabelo"><span>Queda de cabelo</span></label>
+            <label><input type="checkbox" value="Insônia"><span>Insônia</span></label>
+            <label><input type="checkbox" value="Retenção de líquido"><span>Retenção de líquido</span></label>
+            <label><input type="checkbox" value="Ginecomastia"><span>Ginecomastia</span></label>
+            <label><input type="checkbox" value="Alterações de humor"><span>Alterações de humor</span></label>
+            <label><input type="checkbox" value="Pressão alta"><span>Pressão alta</span></label>
+            <label><input type="checkbox" value="Dor de cabeça"><span>Dor de cabeça</span></label>
+            <label><input type="checkbox" value="Dor nas articulações"><span>Dor nas articulações</span></label>
+            <label><input type="checkbox" value="Náusea"><span>Náusea</span></label>
+            <label><input type="checkbox" value="Oleosidade na pele"><span>Oleosidade na pele</span></label>
+            <label><input type="checkbox" value="Suor excessivo"><span>Suor excessivo</span></label>
+            <label><input type="checkbox" value="Cãibras"><span>Cãibras</span></label>
+          </div>
+          <input type="text" id="sym-side-effect-other" placeholder="Outro efeito (opcional)" style="margin-top:8px;">
+
           <label>Observações (opcional)</label>
           <textarea id="sym-notes" rows="2" placeholder="Como você está se sentindo hoje..."></textarea>
 
           <button type="submit" class="btn" id="sym-submit">Salvar registro</button>
         </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: EXAME DE SANGUE -->
+<div class="modal-overlay" id="modal-exame">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <h2>Exame de sangue</h2>
+      <button type="button" class="modal-close" data-close-modal aria-label="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="panel">
+        <h2>Novo exame <span class="n">// registro</span></h2>
+        <form id="form-exam">
+          <div class="row">
+            <div>
+              <label>Data da coleta</label>
+              <input type="date" id="exam-date" required>
+            </div>
+            <div>
+              <label>Laboratório</label>
+              <input type="text" id="exam-lab" placeholder="Ex: Laboratório X">
+            </div>
+          </div>
+
+          <h3 class="exam-section">Hormonal</h3>
+          <div class="row">
+            <div><label>Testosterona total (ng/dL)</label><input type="number" step="any" min="0" id="exam-test-total"></div>
+            <div><label>Testosterona livre (pg/mL)</label><input type="number" step="any" min="0" id="exam-test-free"></div>
+          </div>
+          <div class="row">
+            <div><label>Estradiol — E2 (pg/mL)</label><input type="number" step="any" min="0" id="exam-estradiol"></div>
+            <div><label>SHBG (nmol/L)</label><input type="number" step="any" min="0" id="exam-shbg"></div>
+          </div>
+          <div class="row">
+            <div><label>LH (mUI/mL)</label><input type="number" step="any" min="0" id="exam-lh"></div>
+            <div><label>FSH (mUI/mL)</label><input type="number" step="any" min="0" id="exam-fsh"></div>
+          </div>
+          <div class="row">
+            <div><label>Prolactina (ng/mL)</label><input type="number" step="any" min="0" id="exam-prolactin"></div>
+          </div>
+
+          <h3 class="exam-section">Perfil lipídico</h3>
+          <div class="row">
+            <div><label>Colesterol total (mg/dL)</label><input type="number" step="any" min="0" id="exam-chol-total"></div>
+            <div><label>Triglicerídeos (mg/dL)</label><input type="number" step="any" min="0" id="exam-triglycerides"></div>
+          </div>
+          <div class="row">
+            <div><label>HDL (mg/dL)</label><input type="number" step="any" min="0" id="exam-hdl"></div>
+            <div><label>LDL (mg/dL)</label><input type="number" step="any" min="0" id="exam-ldl"></div>
+          </div>
+
+          <h3 class="exam-section">Função hepática</h3>
+          <div class="row">
+            <div><label>TGO / AST (U/L)</label><input type="number" step="any" min="0" id="exam-ast"></div>
+            <div><label>TGP / ALT (U/L)</label><input type="number" step="any" min="0" id="exam-alt"></div>
+          </div>
+          <div class="row">
+            <div><label>Gama GT (U/L)</label><input type="number" step="any" min="0" id="exam-ggt"></div>
+            <div><label>Bilirrubina total (mg/dL)</label><input type="number" step="any" min="0" id="exam-bilirubin"></div>
+          </div>
+
+          <h3 class="exam-section">Função renal</h3>
+          <div class="row">
+            <div><label>Creatinina (mg/dL)</label><input type="number" step="any" min="0" id="exam-creatinine"></div>
+            <div><label>Ureia (mg/dL)</label><input type="number" step="any" min="0" id="exam-urea"></div>
+          </div>
+          <div class="row">
+            <div><label>TFG (mL/min)</label><input type="number" step="any" min="0" id="exam-gfr"></div>
+          </div>
+
+          <h3 class="exam-section">Hematológico</h3>
+          <div class="row">
+            <div><label>Hemoglobina (g/dL)</label><input type="number" step="any" min="0" id="exam-hemoglobin"></div>
+            <div><label>Hematócrito (%)</label><input type="number" step="any" min="0" id="exam-hematocrit"></div>
+          </div>
+          <div class="row">
+            <div><label>Hemácias (milhões/mm³)</label><input type="number" step="any" min="0" id="exam-rbc"></div>
+          </div>
+
+          <h3 class="exam-section">Outros</h3>
+          <div class="row">
+            <div><label>PSA (ng/mL)</label><input type="number" step="any" min="0" id="exam-psa"></div>
+            <div><label>Glicemia em jejum (mg/dL)</label><input type="number" step="any" min="0" id="exam-glucose"></div>
+          </div>
+          <div class="row">
+            <div><label>TSH (µUI/mL)</label><input type="number" step="any" min="0" id="exam-tsh"></div>
+            <div><label>Pressão arterial (mmHg)</label><input type="text" id="exam-bp" placeholder="Ex: 120/80"></div>
+          </div>
+
+          <label>Observações (opcional)</label>
+          <textarea id="exam-notes" rows="2" placeholder="Laboratório, contexto, etc."></textarea>
+
+          <button type="submit" class="btn" id="exam-submit">Salvar exame</button>
+        </form>
+      </div>
+
+      <div class="panel">
+        <h2>Exames registrados <span class="n" id="exam-count"></span></h2>
+        <div id="exam-list"><div class="empty-state">Nenhum exame registrado ainda.</div></div>
       </div>
     </div>
   </div>
@@ -1285,6 +1465,10 @@
           <option value="all">Tudo</option>
         </select>
         <button type="button" class="btn" id="report-print-btn" style="width:100%;">Imprimir / salvar PDF</button>
+        <button type="button" class="btn secondary no-print" id="report-whatsapp-btn" style="width:100%;">
+          <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px;margin-right:4px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          Compartilhar por WhatsApp
+        </button>
       </div>
       <div id="report-content" class="report-content"></div>
     </div>
@@ -1340,6 +1524,14 @@
       <span class="fo-text">
         <div class="fo-title">Registrar sintomas</div>
         <div class="fo-sub">Humor, energia, sono, libido</div>
+      </span>
+    </button>
+
+    <button type="button" class="fab-option" data-fab-tab="exame">
+      <span class="fo-icon"><svg viewBox="0 0 24 24"><path d="M9 2v6L4 20a1 1 0 0 0 1 2h14a1 1 0 0 0 1-2L15 8V2"/><path d="M9 2h6"/><path d="M8.5 14h7"/></svg></span>
+      <span class="fo-text">
+        <div class="fo-title">Registrar exame de sangue</div>
+        <div class="fo-sub">Hormônios, lipídios, fígado, rim e mais</div>
       </span>
     </button>
   </div>
@@ -1627,6 +1819,7 @@ let substances = [];
 let cycles = [];
 let applications = [];
 let symptoms = [];
+let bloodTests = [];
 
 const WEEKDAY_LABELS = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
 const fmt = n => Number(n).toLocaleString('pt-BR', { maximumFractionDigits: 3 });
@@ -2163,13 +2356,14 @@ function renderCycItems(){
     const item = cycItems.find(i => i.uid === uid);
     const sel = card.querySelector('.cyc-item-substance');
     sel.value = item.substanceId;
-    sel.addEventListener('change', () => { item.substanceId = sel.value; });
+    sel.addEventListener('change', () => { item.substanceId = sel.value; updateCycForecast(); });
     const doseInput = card.querySelector('.cyc-item-dose');
-    doseInput.addEventListener('input', () => { item.doseMl = doseInput.value; });
+    doseInput.addEventListener('input', () => { item.doseMl = doseInput.value; updateCycForecast(); });
     card.querySelectorAll('.cyc-item-days input').forEach(chk => {
       chk.addEventListener('change', () => {
         const v = parseInt(chk.value);
         item.days = chk.checked ? [...item.days, v] : item.days.filter(d => d !== v);
+        updateCycForecast();
       });
     });
     card.querySelector('.cyc-item-remove').addEventListener('click', () => removeCycItem(uid));
@@ -2181,12 +2375,40 @@ addCycItem();
 
 const cycStartDateInput = document.getElementById('cyc-start-date');
 cycStartDateInput.value = new Date().toISOString().slice(0, 10);
+const cycWeeksInput = document.getElementById('cyc-weeks');
+
+function updateCycForecast(){
+  const box = document.getElementById('cyc-forecast');
+  const weeks = parseInt(cycWeeksInput.value);
+  const startDate = cycStartDateInput.value;
+  const items = cycItems.filter(it => it.substanceId && parseFloat(it.doseMl) > 0 && it.days.length);
+  if (!weeks || !startDate || !items.length) { box.innerHTML = ''; return; }
+
+  const fakeCycle = { startDate, weeks, items: items.map(it => ({ substanceId: it.substanceId, doseMl: parseFloat(it.doseMl), days: it.days })) };
+  const stats = getCycleStats(fakeCycle);
+
+  box.innerHTML = `
+    <div class="cyc-forecast">
+      <div class="report-stats">
+        <div class="rs-item"><span class="rs-label">Termina em</span><span class="rs-val" style="font-size:14px;">${stats.endDate.toLocaleDateString('pt-BR')}</span></div>
+        <div class="rs-item"><span class="rs-label">Aplicações previstas</span><span class="rs-val" style="font-size:14px;">${stats.expectedApplications}</span></div>
+      </div>
+      <div class="report-stats" style="margin-top:10px;">
+        <div class="rs-item"><span class="rs-label">Por semana</span><span class="rs-val" style="font-size:14px;">${fmt(stats.weeklyMl)} ml · ${fmt(stats.weeklyMg)} mg</span></div>
+        <div class="rs-item"><span class="rs-label">Total do ciclo</span><span class="rs-val" style="font-size:14px;">${fmt(stats.totalMl)} ml · ${fmt(stats.totalMg)} mg</span></div>
+      </div>
+    </div>
+  `;
+}
+cycWeeksInput.addEventListener('input', updateCycForecast);
+cycStartDateInput.addEventListener('input', updateCycForecast);
 
 function startEditCycle(cycle){
   editingCycleId = cycle.id;
   document.getElementById('cyc-name').value = cycle.name || '';
   document.getElementById('cyc-time').value = cycle.time || '';
   cycStartDateInput.value = cycle.startDate || new Date().toISOString().slice(0, 10);
+  cycWeeksInput.value = cycle.weeks || '';
   document.getElementById('cyc-notes').value = cycle.notes || '';
 
   cycItems = getCycleItems(cycle).map(it => ({
@@ -2194,6 +2416,7 @@ function startEditCycle(cycle){
   }));
   if (!cycItems.length) cycItems = [{ uid: ++cycItemUid, substanceId: '', doseMl: '', days: [] }];
   renderCycItems();
+  updateCycForecast();
 
   cycFormTitle.innerHTML = 'Editar ciclo <span class="n">// alterações</span>';
   cycSubmitBtn.textContent = 'Salvar alterações';
@@ -2208,6 +2431,7 @@ function cancelEditCycle(){
   cycStartDateInput.value = new Date().toISOString().slice(0, 10);
   cycItems = [];
   addCycItem();
+  document.getElementById('cyc-forecast').innerHTML = '';
   cycFormTitle.innerHTML = 'Novo ciclo <span class="n">// agenda</span>';
   cycSubmitBtn.textContent = 'Cadastrar ciclo';
   cycEditingBanner.innerHTML = '';
@@ -2219,6 +2443,7 @@ formCycle.addEventListener('submit', async (e) => {
   const name = document.getElementById('cyc-name').value.trim();
   const time = document.getElementById('cyc-time').value;
   const startDate = cycStartDateInput.value;
+  const weeksVal = cycWeeksInput.value ? parseInt(cycWeeksInput.value) : null;
   const notes = document.getElementById('cyc-notes').value.trim();
   const items = cycItems
     .filter(it => it.substanceId && parseFloat(it.doseMl) > 0 && it.days.length)
@@ -2230,13 +2455,13 @@ formCycle.addEventListener('submit', async (e) => {
   }
 
   if (editingCycleId) {
-    await updateDoc(userDoc('cycles', editingCycleId), { name, items, time, notes, startDate });
+    await updateDoc(userDoc('cycles', editingCycleId), { name, items, time, notes, startDate, weeks: weeksVal });
     showToast('Alterações salvas.');
     cancelEditCycle();
   } else {
     const makeActive = !cycles.some(c => c.active);
     await addDoc(userCollection('cycles'), {
-      name, items, time, notes, startDate,
+      name, items, time, notes, startDate, weeks: weeksVal,
       active: makeActive,
       createdAt: serverTimestamp()
     });
@@ -2245,6 +2470,7 @@ formCycle.addEventListener('submit', async (e) => {
     cycStartDateInput.value = new Date().toISOString().slice(0, 10);
     cycItems = [];
     addCycItem();
+    document.getElementById('cyc-forecast').innerHTML = '';
   }
 });
 
@@ -2265,6 +2491,63 @@ function getCycleItems(c){
   }
   if (c.substanceId) return [{ substanceId: c.substanceId, doseMl: c.doseMl, days: c.days || [] }]; // formato ainda mais antigo
   return [];
+}
+
+function getCycleStats(cycle){
+  const items = getCycleItems(cycle);
+  const weeks = cycle.weeks ? parseInt(cycle.weeks) : null;
+  const startDate = cycle.startDate ? new Date(cycle.startDate + 'T00:00:00') : null;
+  let endDate = null;
+  if (startDate && weeks) {
+    endDate = new Date(startDate);
+    endDate.setDate(endDate.getDate() + weeks * 7 - 1);
+  }
+
+  const distinctDays = new Set();
+  items.forEach(it => (it.days || []).forEach(d => distinctDays.add(d)));
+  const expectedApplications = weeks ? distinctDays.size * weeks : null;
+
+  let weeklyMl = 0, weeklyMg = 0;
+  items.forEach(it => {
+    const sub = substances.find(s => s.id === it.substanceId);
+    const timesPerWeek = (it.days || []).length;
+    weeklyMl += (it.doseMl || 0) * timesPerWeek;
+    weeklyMg += sub ? sub.concentrationMgMl * (it.doseMl || 0) * timesPerWeek : 0;
+  });
+  const totalMl = weeks ? weeklyMl * weeks : null;
+  const totalMg = weeks ? weeklyMg * weeks : null;
+
+  return { weeks, startDate, endDate, expectedApplications, weeklyMl, weeklyMg, totalMl, totalMg };
+}
+
+function shareCycleOnWhatsApp(cycle){
+  const items = getCycleItems(cycle);
+  const startLabel = cycle.startDate ? new Date(cycle.startDate + 'T00:00:00').toLocaleDateString('pt-BR') : '—';
+  const stats = getCycleStats(cycle);
+  const lines = [
+    `Protocolo: ${cycle.name}`,
+    `Início: ${startLabel}`,
+    `Horário: ${cycle.time || '—'}`
+  ];
+  if (stats.weeks) {
+    lines.push(`Duração: ${stats.weeks} semana${stats.weeks === 1 ? '' : 's'} (até ${stats.endDate.toLocaleDateString('pt-BR')})`);
+    lines.push(`Aplicações previstas: ${stats.expectedApplications}`);
+    lines.push(`Total previsto do ciclo: ${fmt(stats.totalMl)} ml — ${fmt(stats.totalMg)} mg`);
+  }
+  lines.push('');
+  lines.push('Substâncias:');
+  items.forEach(it => {
+    const sub = substances.find(s => s.id === it.substanceId);
+    const dayLabels = (it.days || []).map(d => WEEKDAY_LABELS[d]).join(', ');
+    const mgEach = sub ? fmt(sub.concentrationMgMl * it.doseMl) : '—';
+    lines.push(`- ${subLabel(sub)} — ${fmt(it.doseMl)} ml (${mgEach} mg) por aplicação (${dayLabels})`);
+  });
+  if (cycle.notes) { lines.push(''); lines.push(`Obs: ${cycle.notes}`); }
+  lines.push('');
+  lines.push('Enviado pelo Kronos');
+
+  const text = encodeURIComponent(lines.join('\n'));
+  window.open(`https://wa.me/?text=${text}`, '_blank');
 }
 
 function renderCycles(){
@@ -2295,15 +2578,34 @@ function renderCycles(){
             <div class="meta">às ${c.time}${startLabel ? ' · ' + startLabel : ''}</div>
           </div>
           <div class="card-actions">
+            <button class="btn ghost" data-share-cyc="${c.id}" title="Enviar por WhatsApp"><svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px;margin-right:4px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>WhatsApp</button>
             <button class="btn ghost" data-edit-cyc="${c.id}">Editar</button>
             <button class="btn danger" data-del-cyc="${c.id}">Remover</button>
           </div>
         </div>
         <div class="cycle-substances">${subRows}</div>
+        ${(() => {
+          const stats = getCycleStats(c);
+          if (!stats.weeks) return '';
+          return `
+          <div class="cs-forecast">
+            <div class="cs-forecast-row"><span>Termina em</span><b>${stats.endDate.toLocaleDateString('pt-BR')}</b></div>
+            <div class="cs-forecast-row"><span>Aplicações previstas</span><b>${stats.expectedApplications}</b></div>
+            <div class="cs-forecast-row"><span>Por semana</span><b>${fmt(stats.weeklyMl)} ml · ${fmt(stats.weeklyMg)} mg</b></div>
+            <div class="cs-forecast-row"><span>Total do ciclo</span><b>${fmt(stats.totalMl)} ml · ${fmt(stats.totalMg)} mg</b></div>
+          </div>`;
+        })()}
         ${c.notes ? `<div class="meta" style="margin-top:8px;">${escapeHtml(c.notes)}</div>` : ''}
         ${c.active ? '' : `<button type="button" class="btn secondary" style="margin-top:12px;padding:8px 14px;font-size:12.5px;" data-set-active-cyc="${c.id}">Marcar como atual</button>`}
       </div>`;
     }).join('');
+
+    list.querySelectorAll('[data-share-cyc]').forEach(b => {
+      b.addEventListener('click', () => {
+        const cycle = cycles.find(c => c.id === b.dataset.shareCyc);
+        if (cycle) shareCycleOnWhatsApp(cycle);
+      });
+    });
 
     list.querySelectorAll('[data-edit-cyc]').forEach(b => {
       b.addEventListener('click', () => {
@@ -2672,9 +2974,12 @@ formSymptom.addEventListener('submit', async (e) => {
   const sleep = parseInt(document.getElementById('sym-sleep').value);
   const libido = parseInt(document.getElementById('sym-libido').value);
   const notes = document.getElementById('sym-notes').value.trim();
+  const sideEffects = [...document.querySelectorAll('#sym-side-effects input:checked')].map(i => i.value);
+  const otherEffect = document.getElementById('sym-side-effect-other').value.trim();
+  if (otherEffect) sideEffects.push(otherEffect);
 
   await addDoc(userCollection('symptoms'), {
-    date, mood, energy, sleep, libido, notes,
+    date, mood, energy, sleep, libido, notes, sideEffects,
     createdAt: serverTimestamp()
   });
 
@@ -2685,6 +2990,8 @@ formSymptom.addEventListener('submit', async (e) => {
     document.getElementById('sym-' + key).value = 3;
     document.getElementById('sym-' + key + '-val').textContent = '3';
   });
+  document.querySelectorAll('#sym-side-effects input:checked').forEach(i => { i.checked = false; });
+  document.getElementById('sym-side-effect-other').value = '';
   closeModal('modal-sintomas');
 });
 
@@ -2704,6 +3011,9 @@ function renderSymptomList(){
     const stats = ['mood', 'energy', 'sleep', 'libido'].map(key =>
       `<span class="sym-stat"><span class="sym-stat-label">${SYMPTOM_LABELS[key]}</span><span class="sym-stat-val">${s[key] ?? '—'}/5</span></span>`
     ).join('');
+    const effectsHtml = (s.sideEffects && s.sideEffects.length)
+      ? `<div class="chip-row" style="margin-top:8px;margin-bottom:0;">${s.sideEffects.map(fx => `<span class="chip" style="background:var(--danger-tint);border-color:var(--danger-border);color:var(--danger);">${escapeHtml(fx)}</span>`).join('')}</div>`
+      : '';
     return `
     <div class="symptom-item">
       <div class="symptom-item-top">
@@ -2711,6 +3021,7 @@ function renderSymptomList(){
         <button type="button" class="del" data-del-sym="${s.id}" title="Apagar"><svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button>
       </div>
       <div class="sym-stats">${stats}</div>
+      ${effectsHtml}
       ${s.notes ? `<div class="symptom-notes">${escapeHtml(s.notes)}</div>` : ''}
     </div>`;
   }).join('');
@@ -2726,6 +3037,105 @@ function renderSymptomList(){
 }
 
 /* ============================================================
+   7c-2) EXAMES DE SANGUE
+============================================================ */
+const EXAM_FIELDS = [
+  { key: 'testTotal', id: 'exam-test-total', label: 'Testosterona total', unit: 'ng/dL' },
+  { key: 'testFree', id: 'exam-test-free', label: 'Testosterona livre', unit: 'pg/mL' },
+  { key: 'estradiol', id: 'exam-estradiol', label: 'Estradiol', unit: 'pg/mL' },
+  { key: 'shbg', id: 'exam-shbg', label: 'SHBG', unit: 'nmol/L' },
+  { key: 'lh', id: 'exam-lh', label: 'LH', unit: 'mUI/mL' },
+  { key: 'fsh', id: 'exam-fsh', label: 'FSH', unit: 'mUI/mL' },
+  { key: 'prolactin', id: 'exam-prolactin', label: 'Prolactina', unit: 'ng/mL' },
+  { key: 'cholTotal', id: 'exam-chol-total', label: 'Colesterol total', unit: 'mg/dL' },
+  { key: 'triglycerides', id: 'exam-triglycerides', label: 'Triglicerídeos', unit: 'mg/dL' },
+  { key: 'hdl', id: 'exam-hdl', label: 'HDL', unit: 'mg/dL' },
+  { key: 'ldl', id: 'exam-ldl', label: 'LDL', unit: 'mg/dL' },
+  { key: 'ast', id: 'exam-ast', label: 'TGO (AST)', unit: 'U/L' },
+  { key: 'alt', id: 'exam-alt', label: 'TGP (ALT)', unit: 'U/L' },
+  { key: 'ggt', id: 'exam-ggt', label: 'Gama GT', unit: 'U/L' },
+  { key: 'bilirubin', id: 'exam-bilirubin', label: 'Bilirrubina total', unit: 'mg/dL' },
+  { key: 'creatinine', id: 'exam-creatinine', label: 'Creatinina', unit: 'mg/dL' },
+  { key: 'urea', id: 'exam-urea', label: 'Ureia', unit: 'mg/dL' },
+  { key: 'gfr', id: 'exam-gfr', label: 'TFG', unit: 'mL/min' },
+  { key: 'hemoglobin', id: 'exam-hemoglobin', label: 'Hemoglobina', unit: 'g/dL' },
+  { key: 'hematocrit', id: 'exam-hematocrit', label: 'Hematócrito', unit: '%' },
+  { key: 'rbc', id: 'exam-rbc', label: 'Hemácias', unit: 'milhões/mm³' },
+  { key: 'psa', id: 'exam-psa', label: 'PSA', unit: 'ng/mL' },
+  { key: 'glucose', id: 'exam-glucose', label: 'Glicemia', unit: 'mg/dL' },
+  { key: 'tsh', id: 'exam-tsh', label: 'TSH', unit: 'µUI/mL' }
+];
+const EXAM_TEXT_FIELDS = [
+  { key: 'bp', id: 'exam-bp', label: 'Pressão arterial', unit: 'mmHg' }
+];
+
+const formExam = document.getElementById('form-exam');
+const examDateInput = document.getElementById('exam-date');
+examDateInput.value = new Date().toISOString().slice(0, 10);
+
+formExam.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (!db) return;
+  const date = examDateInput.value;
+  if (!date) return;
+  const lab = document.getElementById('exam-lab').value.trim();
+  const notes = document.getElementById('exam-notes').value.trim();
+
+  const data = { date, lab, notes, createdAt: serverTimestamp() };
+  EXAM_FIELDS.forEach(f => {
+    const raw = document.getElementById(f.id).value;
+    if (raw !== '') data[f.key] = parseFloat(raw);
+  });
+  EXAM_TEXT_FIELDS.forEach(f => {
+    const raw = document.getElementById(f.id).value.trim();
+    if (raw) data[f.key] = raw;
+  });
+
+  await addDoc(userCollection('bloodTests'), data);
+  showToast('Exame registrado.');
+  formExam.reset();
+  examDateInput.value = new Date().toISOString().slice(0, 10);
+  closeModal('modal-exame');
+});
+
+function renderExamList(){
+  const box = document.getElementById('exam-list');
+  if (!box) return;
+  const countEl = document.getElementById('exam-count');
+  if (countEl) countEl.textContent = bloodTests.length ? `// ${bloodTests.length}` : '';
+  if (!bloodTests.length) {
+    box.innerHTML = `<div class="empty-state">Nenhum exame registrado ainda.</div>`;
+    return;
+  }
+  const allFields = [...EXAM_FIELDS, ...EXAM_TEXT_FIELDS];
+  box.innerHTML = bloodTests.map(ex => {
+    const dateLabel = new Date(ex.date + 'T00:00:00').toLocaleDateString('pt-BR');
+    const vals = allFields
+      .filter(f => ex[f.key] !== undefined && ex[f.key] !== null && ex[f.key] !== '')
+      .map(f => `<span class="exam-val"><span class="exam-val-label">${escapeHtml(f.label)}</span><span class="exam-val-num">${typeof ex[f.key] === 'number' ? fmt(ex[f.key]) : escapeHtml(String(ex[f.key]))} ${f.unit}</span></span>`)
+      .join('');
+    return `
+    <div class="exam-item">
+      <div class="exam-item-top">
+        <span class="exam-date">${dateLabel}${ex.lab ? ' · ' + escapeHtml(ex.lab) : ''}</span>
+        <button type="button" data-del-exam="${ex.id}" title="Apagar"><svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button>
+      </div>
+      <div class="exam-values">${vals || '<span class="report-empty">Sem valores preenchidos.</span>'}</div>
+      ${ex.notes ? `<div class="symptom-notes">${escapeHtml(ex.notes)}</div>` : ''}
+    </div>`;
+  }).join('');
+
+  box.querySelectorAll('[data-del-exam]').forEach(b => {
+    b.addEventListener('click', async () => {
+      const ok = await confirmDialog('Apagar este exame?');
+      if (!ok) return;
+      await deleteDoc(userDoc('bloodTests', b.dataset.delExam));
+      showToast('Exame apagado.');
+    });
+  });
+}
+
+/* ============================================================
    7d) RELATÓRIO PARA CONSULTA MÉDICA
 ============================================================ */
 function renderReport(){
@@ -2733,6 +3143,7 @@ function renderReport(){
   if (!content) return;
   const periodVal = document.getElementById('report-period').value;
   const now = new Date();
+  const today = new Date(now); today.setHours(0, 0, 0, 0);
   let fromDate = null;
   if (periodVal !== 'all') {
     fromDate = new Date(now);
@@ -2763,39 +3174,67 @@ function renderReport(){
   html += `<h3>Ciclo atual</h3>`;
   if (activeCycle) {
     const items = getCycleItems(activeCycle);
+    const cStats = getCycleStats(activeCycle);
     const startLabel = activeCycle.startDate ? new Date(activeCycle.startDate + 'T00:00:00').toLocaleDateString('pt-BR') : '—';
     html += `<div class="report-stats">
       <div class="rs-item"><span class="rs-label">Protocolo</span><span class="rs-val" style="font-size:14px;">${escapeHtml(activeCycle.name)}</span></div>
       <div class="rs-item"><span class="rs-label">Início</span><span class="rs-val" style="font-size:14px;">${startLabel}</span></div>
+      ${cStats.weeks ? `<div class="rs-item"><span class="rs-label">Termina em</span><span class="rs-val" style="font-size:14px;">${cStats.endDate.toLocaleDateString('pt-BR')}</span></div>` : ''}
     </div>`;
-    html += `<table class="report-table"><thead><tr><th>Substância</th><th>Dose</th><th>Dias</th></tr></thead><tbody>`;
+    if (cStats.weeks) {
+      html += `<div class="report-stats" style="margin-top:10px;">
+        <div class="rs-item"><span class="rs-label">Aplicações previstas</span><span class="rs-val">${cStats.expectedApplications}</span></div>
+        <div class="rs-item"><span class="rs-label">Total previsto</span><span class="rs-val">${fmt(cStats.totalMl)} ml</span></div>
+        <div class="rs-item"><span class="rs-label">&nbsp;</span><span class="rs-val">${fmt(cStats.totalMg)} mg</span></div>
+      </div>`;
+    }
+    html += `<table class="report-table" style="margin-top:10px;"><thead><tr><th>Substância</th><th>Dose</th><th>mg/aplicação</th><th>Dias</th></tr></thead><tbody>`;
     items.forEach(it => {
       const sub = substances.find(s => s.id === it.substanceId);
       const dayLabels = (it.days || []).map(d => WEEKDAY_LABELS[d]).join(', ');
-      html += `<tr><td>${escapeHtml(subLabel(sub))}</td><td>${fmt(it.doseMl)} ml</td><td>${escapeHtml(dayLabels)}</td></tr>`;
+      const mgEach = sub ? fmt(sub.concentrationMgMl * it.doseMl) : '—';
+      html += `<tr><td>${escapeHtml(subLabel(sub))}</td><td>${fmt(it.doseMl)} ml</td><td>${mgEach} mg</td><td>${escapeHtml(dayLabels)}</td></tr>`;
     });
     html += `</tbody></table>`;
   } else {
     html += `<div class="report-empty">Nenhum ciclo marcado como atual.</div>`;
   }
 
-  const totalMl = periodApps.reduce((s, a) => s + (a.mlApplied || 0), 0);
-  const totalMg = periodApps.reduce((s, a) => s + (a.mgApplied || 0), 0);
-  const batchCount = new Set(periodApps.map(a => a.batchId || a.id)).size;
-  html += `<h3>Resumo do período</h3>`;
+  // adesão: percorre os dias do período comparando o que era previsto com o que foi aplicado
+  const adherenceStart = fromDate || (activeCycle && activeCycle.startDate ? new Date(activeCycle.startDate + 'T00:00:00') : today);
+  let previstas = 0, realizadas = 0, perdidas = 0;
+  for (let d = new Date(adherenceStart); d <= today; d.setDate(d.getDate() + 1)) {
+    const day = new Date(d); day.setHours(0, 0, 0, 0);
+    if (!isScheduledOnDate(day)) continue;
+    previstas++;
+    if (hasApplicationOnDate(day)) realizadas++; else perdidas++;
+  }
+  const adherencePct = previstas > 0 ? Math.round((realizadas / previstas) * 100) : null;
+
+  html += `<h3>Adesão ao protocolo</h3>`;
   html += `<div class="report-stats">
-    <div class="rs-item"><span class="rs-label">Aplicações</span><span class="rs-val">${batchCount}</span></div>
-    <div class="rs-item"><span class="rs-label">Volume total</span><span class="rs-val">${fmt(totalMl)} ml</span></div>
-    <div class="rs-item"><span class="rs-label">Dose total</span><span class="rs-val">${fmt(totalMg)} mg</span></div>
+    <div class="rs-item"><span class="rs-label">Previstas</span><span class="rs-val">${previstas}</span></div>
+    <div class="rs-item"><span class="rs-label">Realizadas</span><span class="rs-val" style="color:var(--teal);">${realizadas}</span></div>
+    <div class="rs-item"><span class="rs-label">Perdidas</span><span class="rs-val" style="color:var(--danger);">${perdidas}</span></div>
+    ${adherencePct !== null ? `<div class="rs-item"><span class="rs-label">Adesão</span><span class="rs-val">${adherencePct}%</span></div>` : ''}
   </div>`;
 
-  html += `<h3>Aplicações</h3>`;
-  if (periodApps.length) {
-    html += `<table class="report-table"><thead><tr><th>Data</th><th>Substância</th><th>Dose</th><th>Local</th></tr></thead><tbody>`;
-    periodApps.forEach(a => {
-      const d = a.appliedAt?.toDate ? a.appliedAt.toDate() : null;
-      const dateStr = d ? d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '—';
-      html += `<tr><td>${dateStr}</td><td>${escapeHtml(appSubLabel(a))}</td><td>${fmt(a.mlApplied)} ml · ${fmt(a.mgApplied)} mg</td><td>${escapeHtml(a.site || '—')}</td></tr>`;
+  // totais por substância no período
+  const subTotals = new Map();
+  periodApps.forEach(a => {
+    const key = a.substanceId || a.substanceName;
+    if (!subTotals.has(key)) subTotals.set(key, { label: appSubLabel(a), ml: 0, mg: 0, count: 0 });
+    const t = subTotals.get(key);
+    t.ml += a.mlApplied || 0;
+    t.mg += a.mgApplied || 0;
+    t.count += 1;
+  });
+
+  html += `<h3>Totais por substância</h3>`;
+  if (subTotals.size) {
+    html += `<table class="report-table"><thead><tr><th>Substância</th><th>Nº</th><th>Total ml</th><th>Total mg</th></tr></thead><tbody>`;
+    [...subTotals.values()].forEach(t => {
+      html += `<tr><td>${escapeHtml(t.label)}</td><td>${t.count}</td><td>${fmt(t.ml)} ml</td><td>${fmt(t.mg)} mg</td></tr>`;
     });
     html += `</tbody></table>`;
   } else {
@@ -2811,12 +3250,17 @@ function renderReport(){
       <div class="rs-item"><span class="rs-label">Sono médio</span><span class="rs-val">${avg('sleep')}</span></div>
       <div class="rs-item"><span class="rs-label">Libido média</span><span class="rs-val">${avg('libido')}</span></div>
     </div>`;
-    html += `<table class="report-table" style="margin-top:12px;"><thead><tr><th>Data</th><th>Humor</th><th>Energia</th><th>Sono</th><th>Libido</th></tr></thead><tbody>`;
-    periodSymptoms.forEach(s => {
-      const dateStr = new Date(s.date + 'T00:00:00').toLocaleDateString('pt-BR');
-      html += `<tr><td>${dateStr}</td><td>${s.mood ?? '—'}/5</td><td>${s.energy ?? '—'}/5</td><td>${s.sleep ?? '—'}/5</td><td>${s.libido ?? '—'}/5</td></tr>`;
-    });
-    html += `</tbody></table>`;
+
+    const effectCounts = new Map();
+    periodSymptoms.forEach(s => (s.sideEffects || []).forEach(fx => effectCounts.set(fx, (effectCounts.get(fx) || 0) + 1)));
+    if (effectCounts.size) {
+      const sorted = [...effectCounts.entries()].sort((a, b) => b[1] - a[1]);
+      html += `<table class="report-table" style="margin-top:12px;"><thead><tr><th>Efeito colateral</th><th>Ocorrências</th></tr></thead><tbody>`;
+      sorted.forEach(([fx, n]) => {
+        html += `<tr><td>${escapeHtml(fx)}</td><td>${n}x</td></tr>`;
+      });
+      html += `</tbody></table>`;
+    }
   } else {
     html += `<div class="report-empty">Nenhum registro de sintomas nesse período.</div>`;
   }
@@ -2824,9 +3268,108 @@ function renderReport(){
   content.innerHTML = html;
 }
 
+function buildReportShareText(){
+  const periodVal = document.getElementById('report-period').value;
+  const now = new Date();
+  const today = new Date(now); today.setHours(0, 0, 0, 0);
+  let fromDate = null;
+  if (periodVal !== 'all') {
+    fromDate = new Date(now);
+    fromDate.setDate(now.getDate() - parseInt(periodVal));
+    fromDate.setHours(0, 0, 0, 0);
+  }
+
+  const periodApps = applications.filter(a => {
+    const d = a.appliedAt?.toDate ? a.appliedAt.toDate() : null;
+    return d && (!fromDate || d >= fromDate);
+  });
+  const periodSymptoms = symptoms.filter(s => {
+    if (!fromDate) return true;
+    return new Date(s.date + 'T00:00:00') >= fromDate;
+  });
+  const activeCycle = cycles.find(c => c.active);
+
+  const lines = [
+    'Kronos — Relatório clínico pessoal',
+    `Gerado em ${now.toLocaleDateString('pt-BR')} às ${now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`,
+    `Período: ${periodVal === 'all' ? 'todo o histórico' : 'últimos ' + periodVal + ' dias'}`,
+    ''
+  ];
+
+  if (activeCycle) {
+    lines.push(`Ciclo atual: ${activeCycle.name}`);
+    if (activeCycle.startDate) lines.push(`Início: ${new Date(activeCycle.startDate + 'T00:00:00').toLocaleDateString('pt-BR')}`);
+    const cStats = getCycleStats(activeCycle);
+    if (cStats.weeks) {
+      lines.push(`Termina em: ${cStats.endDate.toLocaleDateString('pt-BR')}`);
+      lines.push(`Aplicações previstas: ${cStats.expectedApplications}`);
+      lines.push(`Total previsto: ${fmt(cStats.totalMl)} ml — ${fmt(cStats.totalMg)} mg`);
+    }
+    lines.push('');
+  }
+
+  const adherenceStart = fromDate || (activeCycle && activeCycle.startDate ? new Date(activeCycle.startDate + 'T00:00:00') : today);
+  let previstas = 0, realizadas = 0, perdidas = 0;
+  for (let d = new Date(adherenceStart); d <= today; d.setDate(d.getDate() + 1)) {
+    const day = new Date(d); day.setHours(0, 0, 0, 0);
+    if (!isScheduledOnDate(day)) continue;
+    previstas++;
+    if (hasApplicationOnDate(day)) realizadas++; else perdidas++;
+  }
+  const adherencePct = previstas > 0 ? Math.round((realizadas / previstas) * 100) : null;
+
+  lines.push('Adesão ao protocolo:');
+  lines.push(`- Previstas: ${previstas}`);
+  lines.push(`- Realizadas: ${realizadas}`);
+  lines.push(`- Perdidas: ${perdidas}`);
+  if (adherencePct !== null) lines.push(`- Adesão: ${adherencePct}%`);
+  lines.push('');
+
+  const subTotals = new Map();
+  periodApps.forEach(a => {
+    const key = a.substanceId || a.substanceName;
+    if (!subTotals.has(key)) subTotals.set(key, { label: appSubLabel(a), ml: 0, mg: 0, count: 0 });
+    const t = subTotals.get(key);
+    t.ml += a.mlApplied || 0;
+    t.mg += a.mgApplied || 0;
+    t.count += 1;
+  });
+  lines.push('Totais por substância:');
+  if (subTotals.size) {
+    [...subTotals.values()].forEach(t => {
+      lines.push(`- ${t.label}: ${t.count}x — ${fmt(t.ml)} ml — ${fmt(t.mg)} mg`);
+    });
+  } else {
+    lines.push('- Nenhuma aplicação nesse período.');
+  }
+
+  if (periodSymptoms.length) {
+    const avg = key => (periodSymptoms.reduce((s, x) => s + (x[key] || 0), 0) / periodSymptoms.length).toFixed(1);
+    lines.push('');
+    lines.push('Sintomas (médias):');
+    lines.push(`- Humor: ${avg('mood')} · Energia: ${avg('energy')} · Sono: ${avg('sleep')} · Libido: ${avg('libido')}`);
+
+    const effectCounts = new Map();
+    periodSymptoms.forEach(s => (s.sideEffects || []).forEach(fx => effectCounts.set(fx, (effectCounts.get(fx) || 0) + 1)));
+    if (effectCounts.size) {
+      const sorted = [...effectCounts.entries()].sort((a, b) => b[1] - a[1]);
+      lines.push('Efeitos colaterais:');
+      sorted.forEach(([fx, n]) => lines.push(`- ${fx}: ${n}x`));
+    }
+  }
+
+  lines.push('');
+  lines.push('Enviado pelo Kronos');
+  return lines.join('\n');
+}
+
 document.getElementById('open-report-btn').addEventListener('click', () => {
   openModal('modal-report');
   renderReport();
+});
+document.getElementById('report-whatsapp-btn').addEventListener('click', () => {
+  const text = encodeURIComponent(buildReportShareText());
+  window.open(`https://wa.me/?text=${text}`, '_blank');
 });
 document.getElementById('report-period').addEventListener('change', renderReport);
 document.getElementById('report-print-btn').addEventListener('click', () => window.print());
@@ -2844,7 +3387,7 @@ let unsubscribers = [];
 
 function startDataListeners(){
   if (!db) {
-    renderSubstances(); renderCycles(); renderHistory(); refreshSubstanceSelects(); renderSymptomList();
+    renderSubstances(); renderCycles(); renderHistory(); refreshSubstanceSelects(); renderSymptomList(); renderExamList();
     return;
   }
   unsubscribers.push(onSnapshot(userCollection('substances'), (snap) => {
@@ -2869,12 +3412,17 @@ function startDataListeners(){
     renderSymptomList();
     renderDashboard();
   }));
+
+  unsubscribers.push(onSnapshot(query(userCollection('bloodTests'), orderBy('date', 'desc')), (snap) => {
+    bloodTests = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderExamList();
+  }));
 }
 
 function stopDataListeners(){
   unsubscribers.forEach(unsub => unsub());
   unsubscribers = [];
-  substances = []; cycles = []; applications = []; symptoms = [];
+  substances = []; cycles = []; applications = []; symptoms = []; bloodTests = [];
 }
 </script>
 </body>
