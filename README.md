@@ -121,10 +121,17 @@ const firebaseConfig = {
   efeitos colaterais e observações) pelo botão flutuante. Aparece listado na aba
   Histórico.
 - **Perfil**: botão no cabeçalho (ícone de pessoa) para informar nome, data de
-  nascimento (calcula a idade automaticamente) e sexo. O sexo é usado para ajustar
-  as faixas de referência dos exames de sangue (testosterona, estradiol, hemoglobina
-  e outros marcadores que diferem entre homens e mulheres); o nome aparece no
-  relatório no lugar do e-mail.
+  nascimento (calcula a idade automaticamente), sexo e um **orçamento mensal (R$)**
+  opcional. O sexo é usado para ajustar as faixas de referência dos exames de sangue
+  (testosterona, estradiol, hemoglobina e outros marcadores que diferem entre
+  homens e mulheres); o nome aparece no relatório no lugar do e-mail; o orçamento
+  alimenta o alerta de gastos no Início.
+- **Gastos**: no Início, um card mostra quanto foi gasto este mês, nos últimos 30
+  dias e no total geral, somando os lançamentos de estoque que têm valor
+  preenchido. Se você definiu um orçamento mensal no perfil, aparece uma barra de
+  progresso e um aviso quando o gasto do mês ultrapassa o limite. O mesmo resumo
+  (este mês / 30 dias / total) também aparece no topo de "Lançamentos de compra",
+  dentro do modal de Substâncias.
 - **Exames de sangue**: registro de valores de exames, pelo botão flutuante — hormonal
   (testosterona total/livre, estradiol, LH, FSH, prolactina, SHBG), perfil lipídico
   (colesterol total, HDL, LDL, triglicerídeos), função hepática (TGO, TGP, Gama GT,

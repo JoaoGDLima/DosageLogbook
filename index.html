@@ -1048,6 +1048,7 @@
       <div class="dash-card wide" id="dash-last"></div>
       <div class="dash-card wide" id="dash-next"></div>
       <div class="dash-card wide" id="dash-week"></div>
+      <div class="dash-card wide" id="dash-spending"></div>
       <div class="dash-card wide">
         <div class="kicker"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>calendário de adesão</div>
         <div class="cal-nav">
@@ -1164,6 +1165,7 @@
 
       <div class="panel">
         <h2>Lançamentos de compra <span class="n" id="stock-entry-count"></span></h2>
+        <div id="stock-spending-summary"></div>
         <div id="stock-entry-list"><div class="empty-state">Nenhum lançamento de estoque ainda.</div></div>
       </div>
     </div>
@@ -1353,6 +1355,8 @@
             </div>
           </div>
           <div id="profile-age-note" class="dash-compact-total" style="margin-top:10px;"></div>
+          <label>Orçamento mensal (R$, opcional)</label>
+          <input type="number" id="profile-budget" step="any" min="0" placeholder="Ex: 500">
           <button type="submit" class="btn" id="profile-submit">Salvar perfil</button>
         </form>
       </div>
@@ -1849,6 +1853,7 @@ function loadProfileIntoForm(){
   document.getElementById('profile-name').value = userProfile.name || '';
   profileBirthdateInput.value = userProfile.birthDate || '';
   profileSexInput.value = userProfile.sex || '';
+  document.getElementById('profile-budget').value = userProfile.monthlyBudget ?? '';
   updateProfileAgeNote();
 }
 
@@ -1863,7 +1868,9 @@ formProfile.addEventListener('submit', async (e) => {
   const name = document.getElementById('profile-name').value.trim();
   const birthDate = profileBirthdateInput.value;
   const sex = profileSexInput.value;
-  await setDoc(userDoc('profile', 'main'), { name, birthDate, sex }, { merge: true });
+  const budgetRaw = document.getElementById('profile-budget').value;
+  const monthlyBudget = budgetRaw !== '' ? parseFloat(budgetRaw) : null;
+  await setDoc(userDoc('profile', 'main'), { name, birthDate, sex, monthlyBudget }, { merge: true });
   showToast('Perfil salvo.');
   closeModal('modal-profile');
 });
@@ -2458,6 +2465,32 @@ function renderDashboard(){
     }).join('');
   }
 
+  // gastos e orçamento
+  const spendCard = document.getElementById('dash-spending');
+  if (spendCard) {
+    const spending = computeSpending();
+    const budget = userProfile.monthlyBudget;
+    let budgetHtml = '';
+    if (budget) {
+      const pct = budget > 0 ? Math.min(100, (spending.thisMonth / budget) * 100) : 0;
+      const over = spending.thisMonth > budget;
+      budgetHtml = `
+        ${over ? `<div class="banner warn" style="margin-top:12px;">Você já gastou ${fmtCurrency(spending.thisMonth)} este mês, passando do orçamento de ${fmtCurrency(budget)}.</div>` : ''}
+        <div class="stock-bar${over ? ' low' : ''}" style="margin-top:10px;"><div class="fill" style="width:${pct}%"></div></div>
+        <div class="dash-compact-total" style="margin-top:6px;">${fmtCurrency(spending.thisMonth)} de ${fmtCurrency(budget)} do orçamento mensal</div>
+      `;
+    }
+    spendCard.innerHTML = `
+      <div class="kicker"><svg viewBox="0 0 24 24"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>gastos</div>
+      <div class="stat-row">
+        <div><div class="stat-num">${fmtCurrency(spending.thisMonth)}</div><div class="sub-value">este mês</div></div>
+        <div><div class="stat-num">${fmtCurrency(spending.lastThirtyDays)}</div><div class="sub-value">últimos 30 dias</div></div>
+        <div><div class="stat-num">${fmtCurrency(spending.allTime)}</div><div class="sub-value">total geral</div></div>
+      </div>
+      ${budgetHtml}
+    `;
+  }
+
   renderCalendar();
 }
 
@@ -2653,6 +2686,23 @@ function renderStockEntryList(){
   if (!box) return;
   const countEl = document.getElementById('stock-entry-count');
   if (countEl) countEl.textContent = stockEntries.length ? `// ${stockEntries.length}` : '';
+
+  const summaryBox = document.getElementById('stock-spending-summary');
+  if (summaryBox) {
+    if (!stockEntries.length) {
+      summaryBox.innerHTML = '';
+    } else {
+      const spending = computeSpending();
+      summaryBox.innerHTML = `
+        <div class="report-stats" style="margin-bottom:14px;">
+          <div class="rs-item"><span class="rs-label">Este mês</span><span class="rs-val" style="font-size:15px;">${fmtCurrency(spending.thisMonth)}</span></div>
+          <div class="rs-item"><span class="rs-label">Últimos 30 dias</span><span class="rs-val" style="font-size:15px;">${fmtCurrency(spending.lastThirtyDays)}</span></div>
+          <div class="rs-item"><span class="rs-label">Total geral</span><span class="rs-val" style="font-size:15px;">${fmtCurrency(spending.allTime)}</span></div>
+        </div>
+      `;
+    }
+  }
+
   if (!stockEntries.length) {
     box.innerHTML = `<div class="empty-state">Nenhum lançamento de estoque ainda.</div>`;
     return;
@@ -2925,6 +2975,27 @@ function avgPricePerMl(substanceId){
   const totalPrice = entries.reduce((s, se) => s + se.price, 0);
   const totalMl = entries.reduce((s, se) => s + se.ml, 0);
   return totalMl > 0 ? totalPrice / totalMl : null;
+}
+
+function computeSpending(){
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const last30 = new Date(now); last30.setDate(now.getDate() - 30);
+
+  let allTime = 0, thisMonth = 0, lastThirtyDays = 0;
+  const perSubstance = new Map();
+
+  stockEntries.forEach(se => {
+    if (se.price === null || se.price === undefined) return;
+    const d = new Date(se.date + 'T00:00:00');
+    allTime += se.price;
+    if (d >= monthStart) thisMonth += se.price;
+    if (d >= last30) lastThirtyDays += se.price;
+    const label = se.substanceNickname || se.substanceName;
+    perSubstance.set(label, (perSubstance.get(label) || 0) + se.price);
+  });
+
+  return { allTime, thisMonth, lastThirtyDays, perSubstance };
 }
 
 function getCycleStats(cycle){
