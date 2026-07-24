@@ -513,6 +513,24 @@
   }
   .exam-section:first-of-type{margin-top:18px;}
 
+  .exam-fieldset{
+    border:1px solid var(--line);border-radius:12px;margin:12px 0 0;
+    overflow:hidden;background:var(--bg-alt);
+  }
+  .exam-fieldset summary{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    padding:13px 15px;cursor:pointer;list-style:none;
+    font-family:var(--display);font-weight:700;font-size:13px;color:var(--teal);
+    text-transform:uppercase;letter-spacing:.03em;
+  }
+  .exam-fieldset summary::-webkit-details-marker{display:none;}
+  .exam-fieldset summary::after{
+    content:'+';font-family:var(--mono);font-size:18px;font-weight:400;
+    color:var(--muted);transition:transform .15s ease;line-height:1;
+  }
+  .exam-fieldset[open] summary::after{transform:rotate(45deg);}
+  .exam-fieldset .exam-fieldset-body{padding:2px 15px 14px;border-top:1px solid var(--line);}
+
   .exam-item{
     background:var(--bg-alt);border:1px solid var(--line);border-radius:12px;
     padding:12px 14px;margin-bottom:10px;
@@ -620,6 +638,14 @@
     width:15px;height:15px;stroke:var(--teal);fill:none;
     stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none;
   }
+  .dash-collapsible summary.kicker{cursor:pointer;list-style:none;justify-content:space-between;}
+  .dash-collapsible summary.kicker::-webkit-details-marker{display:none;}
+  .dash-collapsible summary.kicker::after{
+    content:'+';font-family:var(--mono);font-size:16px;color:var(--muted);
+    margin-left:auto;transition:transform .15s ease;line-height:1;
+  }
+  .dash-collapsible[open] summary.kicker::after{transform:rotate(45deg);}
+  .dash-collapsible-body{margin-top:12px;}
   .dash-card .badge{
     margin-left:auto;
     font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;
@@ -777,46 +803,46 @@
   }
   body.logged-in .fab{display:flex;}
   .fab:active{transform:scale(.9);}
-  .fab svg{width:26px;height:26px;stroke:#FFFFFF;fill:none;stroke-width:2.4;stroke-linecap:round;transition:transform .25s ease;}
-  .fab.open svg{transform:rotate(45deg);}
+  .fab svg{width:24px;height:24px;stroke:#FFFFFF;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;}
 
-  .fab-overlay{
+  /* ===================== MENU LATERAL ===================== */
+  .drawer-overlay{
     position:fixed;inset:0;
-    background:rgba(15,20,32,.55);
+    background:rgba(15,20,32,.5);
     display:none;
-    align-items:flex-end;
-    justify-content:center;
-    z-index:50;
+    z-index:65;
   }
-  .fab-overlay.open{display:flex;}
-  .fab-sheet{
-    width:100%;max-width:480px;
-    background:var(--card);
-    border:1px solid var(--line);border-bottom:none;
-    border-radius:22px 22px 0 0;
-    padding:10px 16px calc(22px + env(safe-area-inset-bottom));
-    animation:sheetUp .22s ease;
+  .drawer-overlay.open{display:block;}
+  .drawer-panel{
+    position:fixed;top:0;left:0;bottom:0;
+    width:280px;max-width:82vw;
+    background:var(--bg);
+    box-shadow:var(--shadow-md);
+    transform:translateX(-100%);
+    transition:transform .22s ease;
+    display:flex;flex-direction:column;
+    padding-top:env(safe-area-inset-top);
   }
-  @keyframes sheetUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
-  .fab-sheet .handle{width:36px;height:4px;background:var(--line);border-radius:2px;margin:8px auto 16px;}
-  .fab-sheet .sheet-title{
-    font-family:var(--display);font-size:17px;font-weight:600;
-    margin-bottom:14px;padding:0 4px;
+  .drawer-overlay.open .drawer-panel{transform:translateX(0);}
+  .drawer-header{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:18px 16px;border-bottom:1px solid var(--line);flex:none;
   }
-  .fab-option{
-    display:flex;align-items:center;gap:14px;
-    width:100%;background:var(--bg-alt);border:1px solid var(--line);
-    border-radius:14px;padding:13px 14px;margin-bottom:9px;
-    color:var(--ink);cursor:pointer;text-align:left;font-family:var(--sans);
+  .drawer-title{font-family:var(--display);font-size:17px;font-weight:700;}
+  .drawer-items{padding:12px;overflow-y:auto;flex:1;}
+  .drawer-item{
+    display:flex;align-items:center;gap:14px;width:100%;
+    background:transparent;border:none;border-radius:12px;
+    padding:13px 12px;margin-bottom:4px;cursor:pointer;
+    color:var(--ink);font-family:var(--sans);font-size:14.5px;font-weight:500;text-align:left;
   }
-  .fab-option:active{background:var(--card-hi);}
-  .fab-option .fo-icon{
-    width:40px;height:40px;border-radius:11px;background:var(--card-hi);
+  .drawer-item:active{background:var(--card-hi);}
+  .drawer-item .di-icon{
+    width:38px;height:38px;border-radius:10px;background:var(--bg-alt);
     display:flex;align-items:center;justify-content:center;flex:none;color:var(--teal);
   }
-  .fab-option .fo-icon svg{width:20px;height:20px;stroke:var(--teal);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
-  .fab-option .fo-text .fo-title{font-weight:600;font-size:14.5px;}
-  .fab-option .fo-text .fo-sub{font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-top:2px;}
+  .drawer-item .di-icon svg{width:19px;height:19px;stroke:var(--teal);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+  @keyframes sheetUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
 
   @media (min-width: 640px){
     body.logged-in{padding-bottom:24px;}
@@ -1022,6 +1048,9 @@
 <div class="wrap" id="app-screen" style="display:none;">
   <header class="top">
     <div class="brand">
+      <button type="button" class="mark notif-btn" id="menu-toggle" title="Menu">
+        <svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
       <button type="button" class="mark notif-btn" id="profile-toggle" style="margin-left:auto;" title="Editar perfil">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
       </button>
@@ -1049,27 +1078,31 @@
       <div class="dash-card wide" id="dash-next"></div>
       <div class="dash-card wide" id="dash-week"></div>
       <div class="dash-card wide" id="dash-spending"></div>
-      <div class="dash-card wide">
-        <div class="kicker"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>calendário de adesão</div>
-        <div class="cal-nav">
-          <button type="button" id="cal-prev" aria-label="Mês anterior"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button>
-          <span id="cal-month-label"></span>
-          <button type="button" id="cal-next" aria-label="Próximo mês"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+      <details class="dash-card wide dash-collapsible">
+        <summary class="kicker"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>calendário de adesão</summary>
+        <div class="dash-collapsible-body">
+          <div class="cal-nav">
+            <button type="button" id="cal-prev" aria-label="Mês anterior"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button>
+            <span id="cal-month-label"></span>
+            <button type="button" id="cal-next" aria-label="Próximo mês"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+          </div>
+          <div class="cal-weekdays">
+            <span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span>
+          </div>
+          <div class="cal-grid" id="cal-grid"></div>
+          <div class="cal-legend">
+            <span><i class="cal-dot done"></i>aplicado</span>
+            <span><i class="cal-dot missed"></i>não aplicado</span>
+            <span><i class="cal-dot upcoming"></i>previsto</span>
+          </div>
         </div>
-        <div class="cal-weekdays">
-          <span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span>
+      </details>
+      <details class="dash-card wide dash-collapsible" open>
+        <summary class="kicker"><svg viewBox="0 0 24 24"><path d="M9 3h6M10 3v5l-5.5 9.5A2 2 0 0 0 6.2 21h11.6a2 2 0 0 0 1.7-3L14 8V3"/></svg>estoque de produtos</summary>
+        <div class="dash-collapsible-body">
+          <div id="dash-stock-list"></div>
         </div>
-        <div class="cal-grid" id="cal-grid"></div>
-        <div class="cal-legend">
-          <span><i class="cal-dot done"></i>aplicado</span>
-          <span><i class="cal-dot missed"></i>não aplicado</span>
-          <span><i class="cal-dot upcoming"></i>previsto</span>
-        </div>
-      </div>
-      <div class="dash-card wide">
-        <div class="kicker"><svg viewBox="0 0 24 24"><path d="M9 3h6M10 3v5l-5.5 9.5A2 2 0 0 0 6.2 21h11.6a2 2 0 0 0 1.7-3L14 8V3"/></svg>estoque de produtos</div>
-        <div id="dash-stock-list" style="margin-top:12px;"></div>
-      </div>
+      </details>
     </div>
   </section>
 
@@ -1499,70 +1532,94 @@
             </div>
           </div>
 
-          <h3 class="exam-section">Hormonal</h3>
-          <div class="row">
-            <div><label>Testosterona total (ng/dL)</label><input type="number" step="any" min="0" id="exam-test-total"></div>
-            <div><label>Testosterona livre (pg/mL)</label><input type="number" step="any" min="0" id="exam-test-free"></div>
-          </div>
-          <div class="row">
-            <div><label>Estradiol — E2 (pg/mL)</label><input type="number" step="any" min="0" id="exam-estradiol"></div>
-            <div><label>SHBG (nmol/L)</label><input type="number" step="any" min="0" id="exam-shbg"></div>
-          </div>
-          <div class="row">
-            <div><label>LH (mUI/mL)</label><input type="number" step="any" min="0" id="exam-lh"></div>
-            <div><label>FSH (mUI/mL)</label><input type="number" step="any" min="0" id="exam-fsh"></div>
-          </div>
-          <div class="row">
-            <div><label>Prolactina (ng/mL)</label><input type="number" step="any" min="0" id="exam-prolactin"></div>
-          </div>
+          <details class="exam-fieldset">
+            <summary>Hormonal</summary>
+            <div class="exam-fieldset-body">
+              <div class="row">
+                <div><label>Testosterona total (ng/dL)</label><input type="number" step="any" min="0" id="exam-test-total"></div>
+                <div><label>Testosterona livre (pg/mL)</label><input type="number" step="any" min="0" id="exam-test-free"></div>
+              </div>
+              <div class="row">
+                <div><label>Estradiol — E2 (pg/mL)</label><input type="number" step="any" min="0" id="exam-estradiol"></div>
+                <div><label>SHBG (nmol/L)</label><input type="number" step="any" min="0" id="exam-shbg"></div>
+              </div>
+              <div class="row">
+                <div><label>LH (mUI/mL)</label><input type="number" step="any" min="0" id="exam-lh"></div>
+                <div><label>FSH (mUI/mL)</label><input type="number" step="any" min="0" id="exam-fsh"></div>
+              </div>
+              <div class="row">
+                <div><label>Prolactina (ng/mL)</label><input type="number" step="any" min="0" id="exam-prolactin"></div>
+              </div>
+            </div>
+          </details>
 
-          <h3 class="exam-section">Perfil lipídico</h3>
-          <div class="row">
-            <div><label>Colesterol total (mg/dL)</label><input type="number" step="any" min="0" id="exam-chol-total"></div>
-            <div><label>Triglicerídeos (mg/dL)</label><input type="number" step="any" min="0" id="exam-triglycerides"></div>
-          </div>
-          <div class="row">
-            <div><label>HDL (mg/dL)</label><input type="number" step="any" min="0" id="exam-hdl"></div>
-            <div><label>LDL (mg/dL)</label><input type="number" step="any" min="0" id="exam-ldl"></div>
-          </div>
+          <details class="exam-fieldset">
+            <summary>Perfil lipídico</summary>
+            <div class="exam-fieldset-body">
+              <div class="row">
+                <div><label>Colesterol total (mg/dL)</label><input type="number" step="any" min="0" id="exam-chol-total"></div>
+                <div><label>Triglicerídeos (mg/dL)</label><input type="number" step="any" min="0" id="exam-triglycerides"></div>
+              </div>
+              <div class="row">
+                <div><label>HDL (mg/dL)</label><input type="number" step="any" min="0" id="exam-hdl"></div>
+                <div><label>LDL (mg/dL)</label><input type="number" step="any" min="0" id="exam-ldl"></div>
+              </div>
+            </div>
+          </details>
 
-          <h3 class="exam-section">Função hepática</h3>
-          <div class="row">
-            <div><label>TGO / AST (U/L)</label><input type="number" step="any" min="0" id="exam-ast"></div>
-            <div><label>TGP / ALT (U/L)</label><input type="number" step="any" min="0" id="exam-alt"></div>
-          </div>
-          <div class="row">
-            <div><label>Gama GT (U/L)</label><input type="number" step="any" min="0" id="exam-ggt"></div>
-            <div><label>Bilirrubina total (mg/dL)</label><input type="number" step="any" min="0" id="exam-bilirubin"></div>
-          </div>
+          <details class="exam-fieldset">
+            <summary>Função hepática</summary>
+            <div class="exam-fieldset-body">
+              <div class="row">
+                <div><label>TGO / AST (U/L)</label><input type="number" step="any" min="0" id="exam-ast"></div>
+                <div><label>TGP / ALT (U/L)</label><input type="number" step="any" min="0" id="exam-alt"></div>
+              </div>
+              <div class="row">
+                <div><label>Gama GT (U/L)</label><input type="number" step="any" min="0" id="exam-ggt"></div>
+                <div><label>Bilirrubina total (mg/dL)</label><input type="number" step="any" min="0" id="exam-bilirubin"></div>
+              </div>
+            </div>
+          </details>
 
-          <h3 class="exam-section">Função renal</h3>
-          <div class="row">
-            <div><label>Creatinina (mg/dL)</label><input type="number" step="any" min="0" id="exam-creatinine"></div>
-            <div><label>Ureia (mg/dL)</label><input type="number" step="any" min="0" id="exam-urea"></div>
-          </div>
-          <div class="row">
-            <div><label>TFG (mL/min)</label><input type="number" step="any" min="0" id="exam-gfr"></div>
-          </div>
+          <details class="exam-fieldset">
+            <summary>Função renal</summary>
+            <div class="exam-fieldset-body">
+              <div class="row">
+                <div><label>Creatinina (mg/dL)</label><input type="number" step="any" min="0" id="exam-creatinine"></div>
+                <div><label>Ureia (mg/dL)</label><input type="number" step="any" min="0" id="exam-urea"></div>
+              </div>
+              <div class="row">
+                <div><label>TFG (mL/min)</label><input type="number" step="any" min="0" id="exam-gfr"></div>
+              </div>
+            </div>
+          </details>
 
-          <h3 class="exam-section">Hematológico</h3>
-          <div class="row">
-            <div><label>Hemoglobina (g/dL)</label><input type="number" step="any" min="0" id="exam-hemoglobin"></div>
-            <div><label>Hematócrito (%)</label><input type="number" step="any" min="0" id="exam-hematocrit"></div>
-          </div>
-          <div class="row">
-            <div><label>Hemácias (milhões/mm³)</label><input type="number" step="any" min="0" id="exam-rbc"></div>
-          </div>
+          <details class="exam-fieldset">
+            <summary>Hematológico</summary>
+            <div class="exam-fieldset-body">
+              <div class="row">
+                <div><label>Hemoglobina (g/dL)</label><input type="number" step="any" min="0" id="exam-hemoglobin"></div>
+                <div><label>Hematócrito (%)</label><input type="number" step="any" min="0" id="exam-hematocrit"></div>
+              </div>
+              <div class="row">
+                <div><label>Hemácias (milhões/mm³)</label><input type="number" step="any" min="0" id="exam-rbc"></div>
+              </div>
+            </div>
+          </details>
 
-          <h3 class="exam-section">Outros</h3>
-          <div class="row">
-            <div><label>PSA (ng/mL)</label><input type="number" step="any" min="0" id="exam-psa"></div>
-            <div><label>Glicemia em jejum (mg/dL)</label><input type="number" step="any" min="0" id="exam-glucose"></div>
-          </div>
-          <div class="row">
-            <div><label>TSH (µUI/mL)</label><input type="number" step="any" min="0" id="exam-tsh"></div>
-            <div><label>Pressão arterial (mmHg)</label><input type="text" id="exam-bp" placeholder="Ex: 120/80"></div>
-          </div>
+          <details class="exam-fieldset">
+            <summary>Outros</summary>
+            <div class="exam-fieldset-body">
+              <div class="row">
+                <div><label>PSA (ng/mL)</label><input type="number" step="any" min="0" id="exam-psa"></div>
+                <div><label>Glicemia em jejum (mg/dL)</label><input type="number" step="any" min="0" id="exam-glucose"></div>
+              </div>
+              <div class="row">
+                <div><label>TSH (µUI/mL)</label><input type="number" step="any" min="0" id="exam-tsh"></div>
+                <div><label>Pressão arterial (mmHg)</label><input type="text" id="exam-bp" placeholder="Ex: 120/80"></div>
+              </div>
+            </div>
+          </details>
 
           <label>Observações (opcional)</label>
           <textarea id="exam-notes" rows="2" placeholder="Laboratório, contexto, etc."></textarea>
@@ -1641,66 +1698,42 @@
   </button>
 </nav>
 
-<!-- BOTÃO FLUTUANTE -->
-<button class="fab" id="fab-btn" title="Adicionar" aria-label="Adicionar">
-  <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+<!-- BOTÃO FLUTUANTE (ação direta: registrar aplicação) -->
+<button class="fab" id="fab-btn" title="Registrar aplicação" aria-label="Registrar aplicação">
+  <svg viewBox="0 0 24 24"><path d="M19 5l-4 4"/><path d="M16 4l4 4"/><path d="M16.5 8.5l-10 10-3.5 1 1-3.5 10-10z"/></svg>
 </button>
 
-<div class="fab-overlay" id="fab-overlay">
-  <div class="fab-sheet">
-    <div class="handle"></div>
-    <div class="sheet-title">O que você quer cadastrar?</div>
-
-    <button type="button" class="fab-option" data-fab-tab="registrar">
-      <span class="fo-icon"><svg viewBox="0 0 24 24"><path d="M19 5l-4 4"/><path d="M16 4l4 4"/><path d="M16.5 8.5l-10 10-3.5 1 1-3.5 10-10z"/></svg></span>
-      <span class="fo-text">
-        <div class="fo-title">Registrar aplicação</div>
-        <div class="fo-sub">Nova dose aplicada agora</div>
-      </span>
-    </button>
-
-    <button type="button" class="fab-option" data-fab-tab="substancias">
-      <span class="fo-icon"><svg viewBox="0 0 24 24"><path d="M9 3h6M10 3v5l-5.5 9.5A2 2 0 0 0 6.2 21h11.6a2 2 0 0 0 1.7-3L14 8V3"/></svg></span>
-      <span class="fo-text">
-        <div class="fo-title">Nova substância</div>
-        <div class="fo-sub">Cadastrar dosagem e estoque</div>
-      </span>
-    </button>
-
-    <button type="button" class="fab-option" data-fab-tab="ciclos">
-      <span class="fo-icon"><svg viewBox="0 0 24 24"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></span>
-      <span class="fo-text">
-        <div class="fo-title">Novo ciclo</div>
-        <div class="fo-sub">Definir substâncias, doses e dias</div>
-      </span>
-    </button>
-
-    <button type="button" class="fab-option" data-fab-tab="sintomas">
-      <span class="fo-icon"><svg viewBox="0 0 24 24"><path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 6c-2.5 4.5-9.5 9-9.5 9z"/></svg></span>
-      <span class="fo-text">
-        <div class="fo-title">Registrar sintomas</div>
-        <div class="fo-sub">Humor, energia, sono, libido</div>
-      </span>
-    </button>
-
-    <button type="button" class="fab-option" data-fab-tab="exame">
-      <span class="fo-icon"><svg viewBox="0 0 24 24"><path d="M9 2v6L4 20a1 1 0 0 0 1 2h14a1 1 0 0 0 1-2L15 8V2"/><path d="M9 2h6"/><path d="M8.5 14h7"/></svg></span>
-      <span class="fo-text">
-        <div class="fo-title">Registrar exame de sangue</div>
-        <div class="fo-sub">Hormônios, lipídios, fígado, rim e mais</div>
-      </span>
-    </button>
-
-    <button type="button" class="fab-option" data-fab-tab="peso">
-      <span class="fo-icon"><svg viewBox="0 0 24 24"><path d="M12 3v3M5.6 5.6l2.1 2.1M3 12h3M5.6 18.4l2.1-2.1M18.4 18.4l-2.1-2.1M21 12h-3M18.4 5.6l-2.1 2.1"/><circle cx="12" cy="12" r="3"/></svg></span>
-      <span class="fo-text">
-        <div class="fo-title">Registrar peso</div>
-        <div class="fo-sub">Acompanhar o peso corporal ao longo do tempo</div>
-      </span>
-    </button>
-  </div>
+<!-- MENU LATERAL -->
+<div class="drawer-overlay" id="drawer-overlay">
+  <nav class="drawer-panel">
+    <div class="drawer-header">
+      <span class="drawer-title">Menu</span>
+      <button type="button" class="modal-close" id="drawer-close" aria-label="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div class="drawer-items">
+      <button type="button" class="drawer-item" data-drawer-tab="substancias">
+        <span class="di-icon"><svg viewBox="0 0 24 24"><path d="M9 3h6M10 3v5l-5.5 9.5A2 2 0 0 0 6.2 21h11.6a2 2 0 0 0 1.7-3L14 8V3"/></svg></span>
+        <span>Substâncias</span>
+      </button>
+      <button type="button" class="drawer-item" data-drawer-tab="ciclos">
+        <span class="di-icon"><svg viewBox="0 0 24 24"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></span>
+        <span>Ciclos</span>
+      </button>
+      <button type="button" class="drawer-item" data-drawer-tab="sintomas">
+        <span class="di-icon"><svg viewBox="0 0 24 24"><path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 6c-2.5 4.5-9.5 9-9.5 9z"/></svg></span>
+        <span>Sintomas e sensações</span>
+      </button>
+      <button type="button" class="drawer-item" data-drawer-tab="exame">
+        <span class="di-icon"><svg viewBox="0 0 24 24"><path d="M9 2v6L4 20a1 1 0 0 0 1 2h14a1 1 0 0 0 1-2L15 8V2"/><path d="M9 2h6"/><path d="M8.5 14h7"/></svg></span>
+        <span>Exames de sangue</span>
+      </button>
+      <button type="button" class="drawer-item" data-drawer-tab="peso">
+        <span class="di-icon"><svg viewBox="0 0 24 24"><path d="M12 3v3M5.6 5.6l2.1 2.1M3 12h3M5.6 18.4l2.1-2.1M18.4 18.4l-2.1-2.1M21 12h-3M18.4 5.6l-2.1 2.1"/><circle cx="12" cy="12" r="3"/></svg></span>
+        <span>Peso corporal</span>
+      </button>
+    </div>
+  </nav>
 </div>
-
 
 <div class="toast-container" id="toast-container"></div>
 
@@ -1954,16 +1987,13 @@ document.querySelectorAll('[data-close-modal]').forEach(btn => {
 document.addEventListener('keydown', (e) => {
   if (e.key !== 'Escape') return;
   document.querySelectorAll('.modal-overlay.open').forEach(overlay => overlay.classList.remove('open'));
-  if (fabOverlayGlobalOpen()) closeFab();
+  const drawerOverlay = document.getElementById('drawer-overlay');
+  if (drawerOverlay && drawerOverlay.classList.contains('open')) drawerOverlay.classList.remove('open');
   const confirmOverlay = document.getElementById('confirm-overlay');
   if (confirmOverlay && confirmOverlay.classList.contains('open')) {
     document.getElementById('confirm-no').click();
   }
 });
-function fabOverlayGlobalOpen(){
-  const el = document.getElementById('fab-overlay');
-  return el && el.classList.contains('open');
-}
 
 /* ============================================================
    2b) TOASTS E MODAL DE CONFIRMAÇÃO (substituem alert()/confirm())
@@ -2011,17 +2041,19 @@ function confirmDialog(message, confirmLabel = 'Remover'){
 }
 
 const fabBtn = document.getElementById('fab-btn');
-const fabOverlay = document.getElementById('fab-overlay');
-function openFab(){ fabOverlay.classList.add('open'); fabBtn.classList.add('open'); }
-function closeFab(){ fabOverlay.classList.remove('open'); fabBtn.classList.remove('open'); }
-fabBtn.addEventListener('click', () => {
-  fabOverlay.classList.contains('open') ? closeFab() : openFab();
-});
-fabOverlay.addEventListener('click', (e) => { if (e.target === fabOverlay) closeFab(); });
-document.querySelectorAll('.fab-option').forEach(opt => {
-  opt.addEventListener('click', () => {
-    closeFab();
-    openModal('modal-' + opt.dataset.fabTab);
+fabBtn.addEventListener('click', () => openModal('modal-registrar'));
+
+const menuToggleBtn = document.getElementById('menu-toggle');
+const drawerOverlay = document.getElementById('drawer-overlay');
+function openDrawer(){ drawerOverlay.classList.add('open'); }
+function closeDrawer(){ drawerOverlay.classList.remove('open'); }
+menuToggleBtn.addEventListener('click', openDrawer);
+document.getElementById('drawer-close').addEventListener('click', closeDrawer);
+drawerOverlay.addEventListener('click', (e) => { if (e.target === drawerOverlay) closeDrawer(); });
+document.querySelectorAll('.drawer-item').forEach(item => {
+  item.addEventListener('click', () => {
+    closeDrawer();
+    openModal('modal-' + item.dataset.drawerTab);
   });
 });
 

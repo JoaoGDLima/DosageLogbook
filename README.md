@@ -173,9 +173,15 @@ extra).
 ### Navegação
 
 A navegação por abas (topo no desktop, embaixo no celular) tem só **Início** e
-**Histórico**. Os cadastros — Substâncias, Ciclos e Registrar aplicação — ficam em
-telas modais, acessadas pelo botão flutuante (+) no canto inferior direito: tocando
-nele, abre um menu para escolher qual cadastro abrir.
+**Histórico**. As outras seções ficam em dois lugares diferentes, pensados pela
+frequência de uso:
+
+- **Botão flutuante** (canto inferior direito): ação direta, sem menu — toca e já
+  abre "Registrar aplicação", que é o uso mais frequente do dia a dia.
+- **Menu lateral** (ícone de três linhas no canto superior esquerdo do cabeçalho):
+  reúne as seções de cadastro/consulta que você usa com menos frequência —
+  Substâncias, Ciclos, Sintomas e sensações, Exames de sangue e Peso corporal.
+  Cada uma abre direto na tela com a lista e o formulário juntos.
 
 Todos os dados sincronizam em tempo real com o Firestore — se você abrir o app em
 dois dispositivos logados na mesma conta, ambos atualizam automaticamente.
