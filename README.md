@@ -98,9 +98,12 @@ const firebaseConfig = {
   tipos no mesmo ciclo. Um dos ciclos pode ser marcado como "atual" (botão "Marcar
   como atual" em cada card) — é esse que aparece no dashboard. Informando também a
   **duração em semanas**, o app calcula sozinho a data de término, quantas aplicações
-  são esperadas no total, e os totais previstos de ml/mg (por semana e do ciclo
-  inteiro) — essas previsões aparecem no card do ciclo, no relatório e na mensagem
-  de WhatsApp.
+  são esperadas no total, os totais previstos de ml/mg (por semana e do ciclo
+  inteiro) e o **custo previsto do ciclo** (usando o preço médio por ml de cada
+  substância, calculado a partir dos lançamentos de estoque que têm valor
+  informado — se algum estiver sem preço lançado, o custo aparece marcado como
+  "parcial") — essas previsões aparecem no card do ciclo, no relatório e na
+  mensagem de WhatsApp.
 - **Registrar** (modal): escolhe o ciclo e o app mostra, marcadas, as substâncias
   agendadas para o dia da data selecionada (mudar a data recalcula a lista). Dá pra
   desmarcar as que não vai aplicar e registrar várias de uma vez. Também pede o local

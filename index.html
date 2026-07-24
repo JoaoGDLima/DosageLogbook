@@ -2044,6 +2044,7 @@ function itemScheduleText(it){
   return (it.days || []).map(d => WEEKDAY_LABELS[d]).join(', ');
 }
 const fmt = n => Number(n).toLocaleString('pt-BR', { maximumFractionDigits: 3 });
+const fmtCurrency = n => 'R$ ' + Number(n).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 function subLabel(sub){
   if (!sub) return '(substância removida)';
@@ -2811,6 +2812,9 @@ function updateCycForecast(){
         <div class="rs-item"><span class="rs-label">Por semana</span><span class="rs-val" style="font-size:14px;">${fmt(stats.weeklyMl)} ml · ${fmt(stats.weeklyMg)} mg</span></div>
         <div class="rs-item"><span class="rs-label">Total do ciclo</span><span class="rs-val" style="font-size:14px;">${fmt(stats.totalMl)} ml · ${fmt(stats.totalMg)} mg</span></div>
       </div>
+      <div class="report-stats" style="margin-top:10px;">
+        <div class="rs-item"><span class="rs-label">Custo previsto${stats.costIncomplete ? ' (parcial)' : ''}</span><span class="rs-val" style="font-size:14px;">${fmtCurrency(stats.totalCost)}</span></div>
+      </div>
     </div>
   `;
 }
@@ -2915,6 +2919,14 @@ function getCycleItems(c){
   return [];
 }
 
+function avgPricePerMl(substanceId){
+  const entries = stockEntries.filter(se => se.substanceId === substanceId && se.price !== null && se.price !== undefined && se.ml > 0);
+  if (!entries.length) return null;
+  const totalPrice = entries.reduce((s, se) => s + se.price, 0);
+  const totalMl = entries.reduce((s, se) => s + se.ml, 0);
+  return totalMl > 0 ? totalPrice / totalMl : null;
+}
+
 function getCycleStats(cycle){
   const items = getCycleItems(cycle);
   const weeks = cycle.weeks ? parseInt(cycle.weeks) : null;
@@ -2925,17 +2937,26 @@ function getCycleStats(cycle){
     endDate.setDate(endDate.getDate() + weeks * 7 - 1);
   }
 
-  let totalMl = null, totalMg = null, weeklyMl = 0, weeklyMg = 0, expectedApplications = null;
+  let totalMl = null, totalMg = null, totalCost = null, weeklyMl = 0, weeklyMg = 0, weeklyCost = 0, expectedApplications = null;
+  let costIncomplete = false;
+
+  const priceCache = new Map();
+  const priceFor = (subId) => {
+    if (!priceCache.has(subId)) priceCache.set(subId, avgPricePerMl(subId));
+    return priceCache.get(subId);
+  };
 
   if (startDate && endDate) {
-    totalMl = 0; totalMg = 0; expectedApplications = 0;
+    totalMl = 0; totalMg = 0; totalCost = 0; expectedApplications = 0;
     for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
       let dayHasApp = false;
       items.forEach(it => {
         if (isItemScheduledOnDate(it, cycle.startDate, d)) {
           const sub = substances.find(s => s.id === it.substanceId);
+          const price = priceFor(it.substanceId);
           totalMl += it.doseMl || 0;
           totalMg += sub ? sub.concentrationMgMl * (it.doseMl || 0) : 0;
+          if (price !== null) totalCost += price * (it.doseMl || 0); else costIncomplete = true;
           dayHasApp = true;
         }
       });
@@ -2943,18 +2964,21 @@ function getCycleStats(cycle){
     }
     weeklyMl = totalMl / weeks;
     weeklyMg = totalMg / weeks;
+    weeklyCost = totalCost / weeks;
   } else {
     // sem data final definida: mostra só a taxa semanal (só faz sentido para dias fixos)
     items.forEach(it => {
       if (it.scheduleType === 'interval') return;
       const sub = substances.find(s => s.id === it.substanceId);
+      const price = priceFor(it.substanceId);
       const timesPerWeek = (it.days || []).length;
       weeklyMl += (it.doseMl || 0) * timesPerWeek;
       weeklyMg += sub ? sub.concentrationMgMl * (it.doseMl || 0) * timesPerWeek : 0;
+      if (price !== null) weeklyCost += price * (it.doseMl || 0) * timesPerWeek; else costIncomplete = true;
     });
   }
 
-  return { weeks, startDate, endDate, expectedApplications, weeklyMl, weeklyMg, totalMl, totalMg };
+  return { weeks, startDate, endDate, expectedApplications, weeklyMl, weeklyMg, totalMl, totalMg, weeklyCost, totalCost, costIncomplete };
 }
 
 function shareCycleOnWhatsApp(cycle){
@@ -2970,6 +2994,7 @@ function shareCycleOnWhatsApp(cycle){
     lines.push(`Duração: ${stats.weeks} semana${stats.weeks === 1 ? '' : 's'} (até ${stats.endDate.toLocaleDateString('pt-BR')})`);
     lines.push(`Aplicações previstas: ${stats.expectedApplications}`);
     lines.push(`Total previsto do ciclo: ${fmt(stats.totalMl)} ml — ${fmt(stats.totalMg)} mg`);
+    lines.push(`Custo previsto${stats.costIncomplete ? ' (parcial)' : ''}: ${fmtCurrency(stats.totalCost)}`);
   }
   lines.push('');
   lines.push('Substâncias:');
@@ -3013,6 +3038,9 @@ function openCycleDetail(cycle){
       <div class="rs-item"><span class="rs-label">Aplicações previstas</span><span class="rs-val">${stats.expectedApplications}</span></div>
       <div class="rs-item"><span class="rs-label">Total do ciclo</span><span class="rs-val">${fmt(stats.totalMl)} ml</span></div>
       <div class="rs-item"><span class="rs-label">&nbsp;</span><span class="rs-val">${fmt(stats.totalMg)} mg</span></div>
+    </div>`;
+    html += `<div class="report-stats" style="margin-top:10px;">
+      <div class="rs-item"><span class="rs-label">Custo previsto${stats.costIncomplete ? ' (parcial)' : ''}</span><span class="rs-val">${fmtCurrency(stats.totalCost)}</span></div>
     </div>`;
   }
 
@@ -3083,12 +3111,14 @@ function renderCycles(){
         ${(() => {
           const stats = getCycleStats(c);
           if (!stats.weeks) return '';
+          const costNote = stats.costIncomplete ? ' (parcial — falta preço em algum lançamento)' : '';
           return `
           <div class="cs-forecast">
             <div class="cs-forecast-row"><span>Termina em</span><b>${stats.endDate.toLocaleDateString('pt-BR')}</b></div>
             <div class="cs-forecast-row"><span>Aplicações previstas</span><b>${stats.expectedApplications}</b></div>
             <div class="cs-forecast-row"><span>Por semana</span><b>${fmt(stats.weeklyMl)} ml · ${fmt(stats.weeklyMg)} mg</b></div>
             <div class="cs-forecast-row"><span>Total do ciclo</span><b>${fmt(stats.totalMl)} ml · ${fmt(stats.totalMg)} mg</b></div>
+            <div class="cs-forecast-row"><span>Custo previsto${costNote}</span><b>${fmtCurrency(stats.totalCost)}</b></div>
           </div>`;
         })()}
         ${c.notes ? `<div class="meta" style="margin-top:8px;">${escapeHtml(c.notes)}</div>` : ''}
@@ -3957,6 +3987,9 @@ function renderReport(){
         <div class="rs-item"><span class="rs-label">Total previsto</span><span class="rs-val">${fmt(cStats.totalMl)} ml</span></div>
         <div class="rs-item"><span class="rs-label">&nbsp;</span><span class="rs-val">${fmt(cStats.totalMg)} mg</span></div>
       </div>`;
+      html += `<div class="report-stats" style="margin-top:10px;">
+        <div class="rs-item"><span class="rs-label">Custo previsto${cStats.costIncomplete ? ' (parcial)' : ''}</span><span class="rs-val">${fmtCurrency(cStats.totalCost)}</span></div>
+      </div>`;
     }
     html += `<table class="report-table" style="margin-top:10px;"><thead><tr><th>Substância</th><th>Dose</th><th>mg/aplicação</th><th>Dias</th></tr></thead><tbody>`;
     items.forEach(it => {
@@ -4102,6 +4135,7 @@ function buildReportShareText(){
       lines.push(`Termina em: ${cStats.endDate.toLocaleDateString('pt-BR')}`);
       lines.push(`Aplicações previstas: ${cStats.expectedApplications}`);
       lines.push(`Total previsto: ${fmt(cStats.totalMl)} ml — ${fmt(cStats.totalMg)} mg`);
+      lines.push(`Custo previsto${cStats.costIncomplete ? ' (parcial)' : ''}: ${fmtCurrency(cStats.totalCost)}`);
     }
     lines.push('');
   }
