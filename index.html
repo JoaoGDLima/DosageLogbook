@@ -2335,6 +2335,11 @@ function renderDashboard(){
     const date = first.appliedAt?.toDate ? first.appliedAt.toDate() : null;
     const totalMl = batch.reduce((sum, a) => sum + (a.mlApplied || 0), 0);
     const totalMg = batch.reduce((sum, a) => sum + (a.mgApplied || 0), 0);
+    let batchCost = 0, batchCostIncomplete = false;
+    batch.forEach(a => {
+      const price = avgPricePerMl(a.substanceId);
+      if (price !== null) batchCost += price * (a.mlApplied || 0); else batchCostIncomplete = true;
+    });
     const chips = batch.map(a => `<span class="chip">${escapeHtml(appSubLabel(a))}</span>`).join('');
     lastCard.innerHTML = `
       <div class="dash-compact-head">
@@ -2343,7 +2348,7 @@ function renderDashboard(){
       </div>
       ${first.cycleName ? `<div class="chip-row"><span class="chip" style="background:var(--ok-tint);border-color:var(--teal-dim);color:var(--teal);">${escapeHtml(first.cycleName)}</span></div>` : ''}
       <div class="chip-row">${chips}</div>
-      <div class="dash-compact-total">Total <b>${fmt(totalMl)} ml · ${fmt(totalMg)} mg</b></div>
+      <div class="dash-compact-total">Total <b>${fmt(totalMl)} ml · ${fmt(totalMg)} mg</b>${batchCost > 0 ? ` · <b>${fmtCurrency(batchCost)}</b>${batchCostIncomplete ? ' (parcial)' : ''}` : ''}</div>
     `;
   } else {
     lastCard.innerHTML = `
@@ -2369,6 +2374,11 @@ function renderDashboard(){
       const sub = substances.find(s => s.id === o.item.substanceId);
       return sum + (sub ? sub.concentrationMgMl * o.item.doseMl : 0);
     }, 0);
+    let batchCost = 0, batchCostIncomplete = false;
+    batch.forEach(o => {
+      const price = avgPricePerMl(o.item.substanceId);
+      if (price !== null) batchCost += price * (parseFloat(o.item.doseMl) || 0); else batchCostIncomplete = true;
+    });
     const chips = batch.map(o => {
       const sub = substances.find(s => s.id === o.item.substanceId);
       const label = subLabel(sub);
@@ -2382,7 +2392,7 @@ function renderDashboard(){
       </div>
       ${protocolLabel ? `<div class="chip-row"><span class="chip" style="background:var(--ok-tint);border-color:var(--teal-dim);color:var(--teal);">${escapeHtml(protocolLabel)}</span></div>` : ''}
       <div class="chip-row">${chips}</div>
-      <div class="dash-compact-total">Total <b>${fmt(totalMl)} ml · ${fmt(totalMg)} mg</b></div>
+      <div class="dash-compact-total">Total <b>${fmt(totalMl)} ml · ${fmt(totalMg)} mg</b>${batchCost > 0 ? ` · <b>${fmtCurrency(batchCost)}</b>${batchCostIncomplete ? ' (parcial)' : ''}` : ''}</div>
     `;
   } else {
     nextCard.innerHTML = `
@@ -2396,9 +2406,11 @@ function renderDashboard(){
   if (activeCycle) {
     const startLabel = activeCycle.startDate ? new Date(activeCycle.startDate + 'T00:00:00').toLocaleDateString('pt-BR') : '—';
     const daysSince = activeCycle.startDate ? Math.max(0, Math.round((now - new Date(activeCycle.startDate + 'T00:00:00')) / 86400000)) : null;
+    const cStats = getCycleStats(activeCycle);
+    const costText = cStats.weeks ? ` · custo previsto ${fmtCurrency(cStats.totalCost)}${cStats.costIncomplete ? ' (parcial)' : ''}` : '';
     cycleCard.innerHTML = `
       <div class="cs-left">${dashIcon('cycle')}<span class="cs-name">${escapeHtml(activeCycle.name)}</span></div>
-      <span class="cs-since">iniciado em ${startLabel}${daysSince !== null ? ' · há ' + daysSince + ' dia' + (daysSince === 1 ? '' : 's') : ''}</span>
+      <span class="cs-since">iniciado em ${startLabel}${daysSince !== null ? ' · há ' + daysSince + ' dia' + (daysSince === 1 ? '' : 's') : ''}${costText}</span>
     `;
   } else {
     cycleCard.innerHTML = `
