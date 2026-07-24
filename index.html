@@ -1111,33 +1111,60 @@
               <input type="text" id="sub-nickname" placeholder="Ex: Sub A">
             </div>
           </div>
-          <div class="row">
-            <div>
-              <label>Concentração (mg/ml)</label>
-              <input type="number" id="sub-conc" step="any" min="0" placeholder="250" required>
-            </div>
-            <div>
-              <label>Volume disponível (ml)</label>
-              <input type="number" id="sub-vol" step="any" min="0" placeholder="10" required>
-            </div>
-          </div>
-          <div class="row">
-            <div>
-              <label>Marca (opcional)</label>
-              <input type="text" id="sub-brand" placeholder="Ex: Fabricante X">
-            </div>
-            <div>
-              <label>Data de compra (opcional)</label>
-              <input type="date" id="sub-purchase-date">
-            </div>
-          </div>
+          <label>Dosagem — concentração (mg/ml)</label>
+          <input type="number" id="sub-conc" step="any" min="0" placeholder="250" required>
           <button type="submit" class="btn" id="sub-submit">Cadastrar substância</button>
+        </form>
+      </div>
+
+      <div class="panel">
+        <h2>Lançar estoque <span class="n">// compra</span></h2>
+        <form id="form-stock-entry">
+          <label>Substância</label>
+          <select id="stock-substance" required></select>
+          <div class="row">
+            <div>
+              <label>Data da compra</label>
+              <input type="date" id="stock-date" required>
+            </div>
+            <div>
+              <label>Quantidade (unidades)</label>
+              <input type="number" id="stock-qty" min="1" step="1" value="1">
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label>Ml comprados</label>
+              <input type="number" id="stock-ml" step="any" min="0" placeholder="10" required>
+            </div>
+            <div>
+              <label>Valor pago (R$)</label>
+              <input type="number" id="stock-price" step="any" min="0" placeholder="0,00">
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label>Marca</label>
+              <input type="text" id="stock-brand" placeholder="Ex: Fabricante X">
+            </div>
+            <div>
+              <label>Fornecedor</label>
+              <input type="text" id="stock-supplier" placeholder="Ex: Loja Y">
+            </div>
+          </div>
+          <div id="stock-mg-note" class="dash-compact-total" style="margin-top:10px;"></div>
+          <button type="submit" class="btn" id="stock-submit">Lançar estoque</button>
         </form>
       </div>
 
       <div class="panel">
         <h2>Estoque <span class="n" id="sub-count"></span></h2>
         <div id="substance-list"><div class="empty-state">Nenhuma substância cadastrada ainda.</div></div>
+      </div>
+
+      <div class="panel">
+        <h2>Lançamentos de compra <span class="n" id="stock-entry-count"></span></h2>
+        <div id="stock-entry-list"><div class="empty-state">Nenhum lançamento de estoque ainda.</div></div>
       </div>
     </div>
   </div>
@@ -2001,6 +2028,7 @@ let symptoms = [];
 let bloodTests = [];
 let userProfile = {};
 let weightLogs = [];
+let stockEntries = [];
 
 const WEEKDAY_LABELS = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
 
@@ -2446,9 +2474,6 @@ function startEditSubstance(sub){
   document.getElementById('sub-name').value = sub.name || '';
   document.getElementById('sub-nickname').value = sub.nickname || '';
   document.getElementById('sub-conc').value = sub.concentrationMgMl ?? '';
-  document.getElementById('sub-vol').value = sub.availableMl ?? '';
-  document.getElementById('sub-brand').value = sub.brand || '';
-  document.getElementById('sub-purchase-date').value = sub.purchaseDate || '';
   subFormTitle.innerHTML = 'Editar substância <span class="n">// alterações</span>';
   subSubmitBtn.textContent = 'Salvar alterações';
   subEditingBanner.innerHTML = `<div class="editing-banner">Editando "${escapeHtml(sub.name)}"<button type="button" id="sub-cancel-edit">cancelar</button></div>`;
@@ -2470,25 +2495,19 @@ formSubstance.addEventListener('submit', async (e) => {
   const name = document.getElementById('sub-name').value.trim();
   const nickname = document.getElementById('sub-nickname').value.trim();
   const conc = parseFloat(document.getElementById('sub-conc').value);
-  const vol = parseFloat(document.getElementById('sub-vol').value);
-  const brand = document.getElementById('sub-brand').value.trim();
-  const purchaseDate = document.getElementById('sub-purchase-date').value;
-  if (!name || isNaN(conc) || isNaN(vol)) return;
+  if (!name || isNaN(conc)) return;
 
   if (editingSubstanceId) {
-    const current = substances.find(s => s.id === editingSubstanceId);
-    const newStartMl = current ? Math.max(current.startMl || 0, vol) : vol;
-    await updateDoc(userDoc('substances', editingSubstanceId), {
-      name, nickname, concentrationMgMl: conc, availableMl: vol, startMl: newStartMl, brand, purchaseDate
-    });
+    await updateDoc(userDoc('substances', editingSubstanceId), { name, nickname, concentrationMgMl: conc });
     showToast('Alterações salvas.');
     cancelEditSubstance();
   } else {
     await addDoc(userCollection('substances'), {
-      name, nickname, concentrationMgMl: conc, availableMl: vol, startMl: vol, brand, purchaseDate,
+      name, nickname, concentrationMgMl: conc,
+      availableMl: 0, startMl: 0,
       createdAt: serverTimestamp()
     });
-    showToast('Substância cadastrada.');
+    showToast('Substância cadastrada. Agora lance o estoque dela em "Lançar estoque".');
     formSubstance.reset();
   }
 });
@@ -2503,11 +2522,7 @@ function renderSubstances(){
   }
   list.innerHTML = substances.map(s => {
     const pct = s.startMl > 0 ? Math.max(0, Math.min(100, (s.availableMl / s.startMl) * 100)) : 0;
-    const extras = [
-      s.nickname ? `nome: ${s.name}` : '',
-      s.brand ? `marca: ${s.brand}` : '',
-      s.purchaseDate ? `comprado em ${new Date(s.purchaseDate + 'T00:00:00').toLocaleDateString('pt-BR')}` : ''
-    ].filter(Boolean).join(' · ');
+    const extras = s.nickname ? `nome: ${s.name}` : '';
     const daysLeft = estimateDaysRemaining(s);
     const daysLabel = daysLeft === null ? '' : (daysLeft <= 0 ? ' · esgota agora' : ` · ~${daysLeft} dia${daysLeft === 1 ? '' : 's'} restantes no ritmo atual`);
     return `
@@ -2519,11 +2534,20 @@ function renderSubstances(){
         <div class="stock">disponível: <b>${fmt(s.availableMl)} ml</b> de ${fmt(s.startMl)} ml${daysLabel}</div>
       </div>
       <div class="sub-actions">
+        <button class="btn ghost" data-quick-stock="${s.id}">+ Estoque</button>
         <button class="btn ghost" data-edit-sub="${s.id}">Editar</button>
         <button class="btn danger" data-del-sub="${s.id}">Remover</button>
       </div>
     </div>`;
   }).join('');
+
+  list.querySelectorAll('[data-quick-stock]').forEach(b => {
+    b.addEventListener('click', () => {
+      document.getElementById('stock-substance').value = b.dataset.quickStock;
+      updateStockMgNote();
+      document.getElementById('form-stock-entry').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+  });
 
   list.querySelectorAll('[data-edit-sub]').forEach(b => {
     b.addEventListener('click', () => {
@@ -2558,7 +2582,120 @@ function refreshSubstanceSelects(){
     sel.innerHTML = substanceOptionsHtml();
     if ([...sel.options].some(o => o.value === current)) sel.value = current;
   });
+  const stockSel = document.getElementById('stock-substance');
+  if (stockSel) {
+    const current = stockSel.value;
+    stockSel.innerHTML = substanceOptionsHtml();
+    if ([...stockSel.options].some(o => o.value === current)) stockSel.value = current;
+    updateStockMgNote();
+  }
   refreshCycleSelect();
+}
+
+/* ============================================================
+   4b) LANÇAMENTOS DE ESTOQUE (compras)
+============================================================ */
+const formStockEntry = document.getElementById('form-stock-entry');
+const stockDateInput = document.getElementById('stock-date');
+stockDateInput.value = new Date().toISOString().slice(0, 10);
+
+function updateStockMgNote(){
+  const sub = substances.find(s => s.id === document.getElementById('stock-substance').value);
+  const ml = parseFloat(document.getElementById('stock-ml').value) || 0;
+  const note = document.getElementById('stock-mg-note');
+  if (sub && ml > 0) {
+    note.textContent = `Equivale a ${fmt(sub.concentrationMgMl * ml)} mg no total.`;
+  } else {
+    note.textContent = '';
+  }
+}
+document.getElementById('stock-substance').addEventListener('change', updateStockMgNote);
+document.getElementById('stock-ml').addEventListener('input', updateStockMgNote);
+
+formStockEntry.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (!db) return;
+  const substanceId = document.getElementById('stock-substance').value;
+  const sub = substances.find(s => s.id === substanceId);
+  const date = stockDateInput.value;
+  const qty = parseInt(document.getElementById('stock-qty').value) || 1;
+  const ml = parseFloat(document.getElementById('stock-ml').value);
+  const price = parseFloat(document.getElementById('stock-price').value);
+  const brand = document.getElementById('stock-brand').value.trim();
+  const supplier = document.getElementById('stock-supplier').value.trim();
+  if (!sub || !date || isNaN(ml) || ml <= 0) {
+    showToast('Escolha a substância e informe ao menos a data e o ml comprados.', 'err');
+    return;
+  }
+  const mg = sub.concentrationMgMl * ml;
+
+  await addDoc(userCollection('stockEntries'), {
+    substanceId, substanceName: sub.name, substanceNickname: sub.nickname || '',
+    date, qty, ml, mg,
+    price: isNaN(price) ? null : price,
+    brand, supplier,
+    createdAt: serverTimestamp()
+  });
+  await updateDoc(userDoc('substances', substanceId), {
+    availableMl: increment(ml), startMl: increment(ml)
+  });
+
+  showToast('Estoque lançado.');
+  formStockEntry.reset();
+  stockDateInput.value = new Date().toISOString().slice(0, 10);
+  document.getElementById('stock-qty').value = 1;
+  updateStockMgNote();
+});
+
+function renderStockEntryList(){
+  const box = document.getElementById('stock-entry-list');
+  if (!box) return;
+  const countEl = document.getElementById('stock-entry-count');
+  if (countEl) countEl.textContent = stockEntries.length ? `// ${stockEntries.length}` : '';
+  if (!stockEntries.length) {
+    box.innerHTML = `<div class="empty-state">Nenhum lançamento de estoque ainda.</div>`;
+    return;
+  }
+  box.innerHTML = stockEntries.map(se => {
+    const dateLabel = new Date(se.date + 'T00:00:00').toLocaleDateString('pt-BR');
+    const label = se.substanceNickname || se.substanceName;
+    const extras = [
+      se.brand ? `marca: ${se.brand}` : '',
+      se.supplier ? `fornecedor: ${se.supplier}` : '',
+      se.price !== null && se.price !== undefined ? `R$ ${fmt(se.price)}` : ''
+    ].filter(Boolean).join(' · ');
+    return `
+    <div class="exam-item">
+      <div class="exam-item-top">
+        <span class="exam-date">${dateLabel} · ${escapeHtml(label)}</span>
+        <button type="button" data-del-stock="${se.id}" title="Apagar"><svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button>
+      </div>
+      <div class="exam-values">
+        <span class="exam-val"><span class="exam-val-label">Quantidade</span><span class="exam-val-num">${se.qty}</span></span>
+        <span class="exam-val"><span class="exam-val-label">Ml</span><span class="exam-val-num">${fmt(se.ml)} ml</span></span>
+        <span class="exam-val"><span class="exam-val-label">Mg</span><span class="exam-val-num">${fmt(se.mg)} mg</span></span>
+      </div>
+      ${extras ? `<div class="symptom-notes">${escapeHtml(extras)}</div>` : ''}
+    </div>`;
+  }).join('');
+
+  box.querySelectorAll('[data-del-stock]').forEach(b => {
+    b.addEventListener('click', async () => {
+      const entry = stockEntries.find(x => x.id === b.dataset.delStock);
+      if (!entry) return;
+      const ok = await confirmDialog('Apagar este lançamento de estoque? O ml correspondente será descontado da substância.');
+      if (!ok) return;
+      await deleteDoc(userDoc('stockEntries', entry.id));
+      const sub = substances.find(s => s.id === entry.substanceId);
+      if (sub) {
+        await updateDoc(userDoc('substances', entry.substanceId), {
+          availableMl: Math.max(0, (sub.availableMl || 0) - entry.ml),
+          startMl: Math.max(0, (sub.startMl || 0) - entry.ml)
+        });
+      }
+      showToast('Lançamento apagado.');
+    });
+  });
 }
 
 function weekdaysMiniHtml(selectedDays){
@@ -4061,7 +4198,7 @@ let unsubscribers = [];
 
 function startDataListeners(){
   if (!db) {
-    renderSubstances(); renderCycles(); renderHistory(); refreshSubstanceSelects(); renderSymptomList(); renderExamList(); renderWeightList();
+    renderSubstances(); renderCycles(); renderHistory(); refreshSubstanceSelects(); renderSymptomList(); renderExamList(); renderWeightList(); renderStockEntryList();
     return;
   }
   unsubscribers.push(onSnapshot(userCollection('substances'), (snap) => {
@@ -4100,12 +4237,17 @@ function startDataListeners(){
     weightLogs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     renderWeightList();
   }));
+
+  unsubscribers.push(onSnapshot(query(userCollection('stockEntries'), orderBy('date', 'desc')), (snap) => {
+    stockEntries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderStockEntryList();
+  }));
 }
 
 function stopDataListeners(){
   unsubscribers.forEach(unsub => unsub());
   unsubscribers = [];
-  substances = []; cycles = []; applications = []; symptoms = []; bloodTests = []; userProfile = {}; weightLogs = [];
+  substances = []; cycles = []; applications = []; symptoms = []; bloodTests = []; userProfile = {}; weightLogs = []; stockEntries = [];
 }
 </script>
 <script>

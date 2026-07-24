@@ -80,9 +80,17 @@ const firebaseConfig = {
   de início), um resumo dos últimos 7 dias com um mini gráfico de mg aplicados por dia,
   um alerta quando algum produto está com estoque baixo ou zerado, e a visão geral do
   estoque de todas as substâncias com barra de progresso.
-- **Substâncias** (modal, aberto pelo botão flutuante): cadastra nome, apelido, marca
-  e data de compra (opcionais), concentração (mg/ml) e volume disponível (ml). Cada uma
-  aparece com um indicador visual do estoque restante.
+- **Substâncias** (modal, aberto pelo botão flutuante): o cadastro em si é só **nome,
+  apelido (opcional) e dosagem** (concentração em mg/ml) — o estoque não entra mais
+  aqui. Cada substância aparece com um indicador visual do estoque restante (que
+  começa zerado até você lançar uma compra).
+- **Lançar estoque** (mesmo modal de Substâncias): registra uma compra — escolhe a
+  substância, data da compra, quantidade (unidades), ml comprados, valor pago,
+  marca e fornecedor. O mg total é calculado automaticamente pela dosagem da
+  substância. Cada lançamento soma ao estoque disponível; apagar um lançamento
+  desconta de volta. Fica tudo listado em "Lançamentos de compra", dentro do mesmo
+  modal — dá pra ter vários lançamentos por substância, cada um com sua marca,
+  fornecedor e valor.
 - **Ciclos** (modal): define um nome, horário, data de início, e adiciona uma ou mais
   substâncias ao ciclo — cada substância tem sua própria dose (ml) e seu próprio
   agendamento, que pode ser **dias fixos da semana** ou **a cada N dias** (contando a
