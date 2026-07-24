@@ -84,12 +84,15 @@ const firebaseConfig = {
   e data de compra (opcionais), concentração (mg/ml) e volume disponível (ml). Cada uma
   aparece com um indicador visual do estoque restante.
 - **Ciclos** (modal): define um nome, horário, data de início, e adiciona uma ou mais
-  substâncias ao ciclo — cada substância tem sua própria dose (ml) e seus próprios dias
-  da semana. Um dos ciclos pode ser marcado como "atual" (botão "Marcar como atual" em
-  cada card) — é esse que aparece no dashboard. Informando também a **duração em
-  semanas**, o app calcula sozinho a data de término, quantas aplicações são esperadas
-  no total, e os totais previstos de ml/mg (por semana e do ciclo inteiro) — essas
-  previsões aparecem no card do ciclo, no relatório e na mensagem de WhatsApp.
+  substâncias ao ciclo — cada substância tem sua própria dose (ml) e seu próprio
+  agendamento, que pode ser **dias fixos da semana** ou **a cada N dias** (contando a
+  partir do início do ciclo — por exemplo, a cada 10 dias). Dá pra misturar os dois
+  tipos no mesmo ciclo. Um dos ciclos pode ser marcado como "atual" (botão "Marcar
+  como atual" em cada card) — é esse que aparece no dashboard. Informando também a
+  **duração em semanas**, o app calcula sozinho a data de término, quantas aplicações
+  são esperadas no total, e os totais previstos de ml/mg (por semana e do ciclo
+  inteiro) — essas previsões aparecem no card do ciclo, no relatório e na mensagem
+  de WhatsApp.
 - **Registrar** (modal): escolhe o ciclo e o app mostra, marcadas, as substâncias
   agendadas para o dia da data selecionada (mudar a data recalcula a lista). Dá pra
   desmarcar as que não vai aplicar e registrar várias de uma vez. Também pede o local
@@ -106,17 +109,24 @@ const firebaseConfig = {
 - **Sintomas e sensações**: registro rápido (humor, energia, sono, libido de 1 a 5,
   efeitos colaterais e observações) pelo botão flutuante. Aparece listado na aba
   Histórico.
+- **Perfil**: botão no cabeçalho (ícone de pessoa) para informar nome, data de
+  nascimento (calcula a idade automaticamente) e sexo. O sexo é usado para ajustar
+  as faixas de referência dos exames de sangue (testosterona, estradiol, hemoglobina
+  e outros marcadores que diferem entre homens e mulheres); o nome aparece no
+  relatório no lugar do e-mail.
 - **Exames de sangue**: registro de valores de exames, pelo botão flutuante — hormonal
   (testosterona total/livre, estradiol, LH, FSH, prolactina, SHBG), perfil lipídico
   (colesterol total, HDL, LDL, triglicerídeos), função hepática (TGO, TGP, Gama GT,
   bilirrubina), função renal (creatinina, ureia, TFG), hematológico (hemoglobina,
   hematócrito, hemácias) e outros (PSA, glicemia, TSH, pressão arterial), além de data
   da coleta e laboratório. Todos os campos são opcionais — preencha só o que constar
-  no seu exame. Valores fora da faixa de referência geral usada pelo app aparecem
-  marcados com ⚠ (essas faixas são genéricas e variam por laboratório — não é
-  orientação médica). O mesmo modal tem um **gráfico de evolução**: escolha um
-  marcador e veja como ele mudou ao longo do tempo, com a faixa de referência
-  destacada no fundo do gráfico.
+  no seu exame. Valores fora da faixa de referência (ajustada pelo sexo informado no
+  perfil, quando houver) aparecem marcados com ⚠ (essas faixas são gerais e variam por
+  laboratório — não é orientação médica). O mesmo modal tem um **gráfico de
+  evolução**: escolha um marcador e veja como ele mudou ao longo do tempo, com a
+  faixa de referência destacada no fundo do gráfico.
+- **Peso corporal**: registro rápido de peso (kg) pelo botão flutuante, com gráfico
+  de evolução e variação no período, no mesmo padrão dos exames.
 - **Relatório**: na aba Histórico, o botão "Relatório" monta um resumo (ciclo atual,
   adesão, totais por substância, exame mais recente do período e sintomas) pronto
   para imprimir ou salvar como PDF pelo próprio navegador, ou compartilhar via

@@ -257,6 +257,13 @@
   .weekdays-mini label:has(input:checked){background:var(--teal);border-color:var(--teal);}
   .weekdays-mini label:has(input:checked) span{color:var(--bg);font-weight:600;}
 
+  .cyc-item-schedule-type{margin-top:8px;font-size:13px;padding:8px 10px;padding-right:32px;}
+  .cyc-item-interval-row{
+    display:flex;align-items:center;gap:8px;margin-top:8px;
+  }
+  .cyc-item-interval-row input{width:70px;flex:none;}
+  .cyc-item-interval-row span{font-size:12px;color:var(--muted);}
+
   .cycle-substances{margin-top:10px;}
   .cycle-substances .cs-row{
     padding:7px 0;
@@ -1015,7 +1022,10 @@
 <div class="wrap" id="app-screen" style="display:none;">
   <header class="top">
     <div class="brand">
-      <button type="button" class="mark notif-btn" id="notif-toggle" style="margin-left:auto;" title="Ativar lembretes de aplicação">
+      <button type="button" class="mark notif-btn" id="profile-toggle" style="margin-left:auto;" title="Editar perfil">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+      </button>
+      <button type="button" class="mark notif-btn" id="notif-toggle" title="Ativar lembretes de aplicação">
         <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
       </button>
       <span class="mark" id="user-badge" style="cursor:pointer;" title="Sair">sair ↦</span>
@@ -1288,6 +1298,81 @@
   </div>
 </div>
 
+<!-- MODAL: PERFIL -->
+<div class="modal-overlay" id="modal-profile">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <h2>Perfil</h2>
+      <button type="button" class="modal-close" data-close-modal aria-label="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="panel">
+        <h2>Informações pessoais <span class="n">// perfil</span></h2>
+        <form id="form-profile">
+          <label>Nome</label>
+          <input type="text" id="profile-name" placeholder="Como quer ser chamado no relatório">
+          <div class="row">
+            <div>
+              <label>Data de nascimento</label>
+              <input type="date" id="profile-birthdate">
+            </div>
+            <div>
+              <label>Sexo</label>
+              <select id="profile-sex">
+                <option value="">Prefiro não informar</option>
+                <option value="M">Masculino</option>
+                <option value="F">Feminino</option>
+              </select>
+            </div>
+          </div>
+          <div id="profile-age-note" class="dash-compact-total" style="margin-top:10px;"></div>
+          <button type="submit" class="btn" id="profile-submit">Salvar perfil</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: PESO -->
+<div class="modal-overlay" id="modal-peso">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <h2>Peso corporal</h2>
+      <button type="button" class="modal-close" data-close-modal aria-label="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="panel">
+        <h2>Novo registro <span class="n">// peso</span></h2>
+        <form id="form-weight">
+          <div class="row">
+            <div>
+              <label>Data</label>
+              <input type="date" id="weight-date" required>
+            </div>
+            <div>
+              <label>Peso (kg)</label>
+              <input type="number" id="weight-kg" step="any" min="0" required>
+            </div>
+          </div>
+          <label>Observações (opcional)</label>
+          <textarea id="weight-notes" rows="2"></textarea>
+          <button type="submit" class="btn" id="weight-submit">Salvar peso</button>
+        </form>
+      </div>
+
+      <div class="panel">
+        <h2>Evolução <span class="n">// gráfico</span></h2>
+        <div id="weight-chart"></div>
+      </div>
+
+      <div class="panel">
+        <h2>Registros <span class="n" id="weight-count"></span></h2>
+        <div id="weight-list"><div class="empty-state">Nenhum registro de peso ainda.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL: SINTOMAS -->
 <div class="modal-overlay" id="modal-sintomas">
   <div class="modal-sheet">
@@ -1297,7 +1382,8 @@
     </div>
     <div class="modal-body">
       <div class="panel">
-        <h2>Como você está <span class="n">// registro diário</span></h2>
+        <h2 id="sym-form-title">Como você está <span class="n">// registro diário</span></h2>
+        <div id="sym-editing-banner"></div>
         <form id="form-symptom">
           <label>Data</label>
           <input type="date" id="sym-date" required>
@@ -1573,6 +1659,14 @@
         <div class="fo-sub">Hormônios, lipídios, fígado, rim e mais</div>
       </span>
     </button>
+
+    <button type="button" class="fab-option" data-fab-tab="peso">
+      <span class="fo-icon"><svg viewBox="0 0 24 24"><path d="M12 3v3M5.6 5.6l2.1 2.1M3 12h3M5.6 18.4l2.1-2.1M18.4 18.4l-2.1-2.1M21 12h-3M18.4 5.6l-2.1 2.1"/><circle cx="12" cy="12" r="3"/></svg></span>
+      <span class="fo-text">
+        <div class="fo-title">Registrar peso</div>
+        <div class="fo-sub">Acompanhar o peso corporal ao longo do tempo</div>
+      </span>
+    </button>
   </div>
 </div>
 
@@ -1592,7 +1686,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
 import {
-  getFirestore, collection, addDoc, doc, updateDoc, deleteDoc,
+  getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, setDoc,
   onSnapshot, query, orderBy, serverTimestamp, increment
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 import {
@@ -1700,6 +1794,52 @@ userBadge.addEventListener('click', () => {
 
 const notifToggleBtn = document.getElementById('notif-toggle');
 if (notifToggleBtn) notifToggleBtn.addEventListener('click', toggleNotifications);
+
+/* ============================================================
+   2c) PERFIL DO USUÁRIO
+============================================================ */
+const formProfile = document.getElementById('form-profile');
+const profileBirthdateInput = document.getElementById('profile-birthdate');
+const profileSexInput = document.getElementById('profile-sex');
+
+function calcAge(birthDate){
+  if (!birthDate) return null;
+  const b = new Date(birthDate + 'T00:00:00');
+  const now = new Date();
+  let age = now.getFullYear() - b.getFullYear();
+  const m = now.getMonth() - b.getMonth();
+  if (m < 0 || (m === 0 && now.getDate() < b.getDate())) age--;
+  return age;
+}
+
+function updateProfileAgeNote(){
+  const age = calcAge(profileBirthdateInput.value);
+  document.getElementById('profile-age-note').textContent = age !== null ? `Idade: ${age} anos` : '';
+}
+profileBirthdateInput.addEventListener('input', updateProfileAgeNote);
+
+function loadProfileIntoForm(){
+  document.getElementById('profile-name').value = userProfile.name || '';
+  profileBirthdateInput.value = userProfile.birthDate || '';
+  profileSexInput.value = userProfile.sex || '';
+  updateProfileAgeNote();
+}
+
+document.getElementById('profile-toggle').addEventListener('click', () => {
+  loadProfileIntoForm();
+  openModal('modal-profile');
+});
+
+formProfile.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (!db) return;
+  const name = document.getElementById('profile-name').value.trim();
+  const birthDate = profileBirthdateInput.value;
+  const sex = profileSexInput.value;
+  await setDoc(userDoc('profile', 'main'), { name, birthDate, sex }, { merge: true });
+  showToast('Perfil salvo.');
+  closeModal('modal-profile');
+});
 
 function translateAuthError(code){
   const map = {
@@ -1859,8 +1999,22 @@ let cycles = [];
 let applications = [];
 let symptoms = [];
 let bloodTests = [];
+let userProfile = {};
+let weightLogs = [];
 
 const WEEKDAY_LABELS = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+
+function itemScheduleHtml(it){
+  if (it.scheduleType === 'interval') {
+    return `<div class="cs-days"><span class="on" style="width:auto;padding:1px 9px;">a cada ${it.intervalDays} dia${it.intervalDays === 1 ? '' : 's'}</span></div>`;
+  }
+  const dayPills = WEEKDAY_LABELS.map((lb, i) => `<span class="${(it.days || []).includes(i) ? 'on' : ''}">${lb}</span>`).join('');
+  return `<div class="cs-days">${dayPills}</div>`;
+}
+function itemScheduleText(it){
+  if (it.scheduleType === 'interval') return `a cada ${it.intervalDays} dias`;
+  return (it.days || []).map(d => WEEKDAY_LABELS[d]).join(', ');
+}
 const fmt = n => Number(n).toLocaleString('pt-BR', { maximumFractionDigits: 3 });
 
 function subLabel(sub){
@@ -1944,6 +2098,31 @@ function nextOccurrence(dayOfWeek, timeStr, now){
   return candidate;
 }
 
+function nextItemOccurrence(item, cycleStartDate, timeStr, now){
+  const [hh, mm] = timeStr.split(':').map(Number);
+  if (item.scheduleType === 'interval') {
+    if (!cycleStartDate || !item.intervalDays) return null;
+    const start = new Date(cycleStartDate + 'T00:00:00');
+    let candidate = new Date(start);
+    candidate.setHours(hh, mm, 0, 0);
+    if (candidate < now) {
+      const diffDays = Math.floor((now - start) / 86400000);
+      const cyclesPassed = Math.max(0, Math.floor(diffDays / item.intervalDays));
+      candidate = new Date(start);
+      candidate.setDate(candidate.getDate() + cyclesPassed * item.intervalDays);
+      candidate.setHours(hh, mm, 0, 0);
+      while (candidate < now) candidate.setDate(candidate.getDate() + item.intervalDays);
+    }
+    return candidate;
+  }
+  let best = null;
+  (item.days || []).forEach(d => {
+    const date = nextOccurrence(d, timeStr, now);
+    if (!best || date < best) best = date;
+  });
+  return best;
+}
+
 /* ============================================================
    3c) LEMBRETES (Notification API — funciona com a aba/app aberto)
 ============================================================ */
@@ -1993,9 +2172,8 @@ function checkAndNotify(){
   const occurrences = [];
   cycles.forEach(c => {
     getCycleItems(c).forEach(it => {
-      (it.days || []).forEach(d => {
-        occurrences.push({ date: nextOccurrence(d, c.time, now), cycle: c, item: it });
-      });
+      const date = nextItemOccurrence(it, c.startDate, c.time, now);
+      if (date) occurrences.push({ date, cycle: c, item: it });
     });
   });
   if (!occurrences.length) return;
@@ -2031,13 +2209,23 @@ let calendarMonth = new Date();
 calendarMonth.setDate(1);
 calendarMonth.setHours(0, 0, 0, 0);
 
+function isItemScheduledOnDate(item, cycleStartDate, date){
+  if (item.scheduleType === 'interval') {
+    if (!cycleStartDate || !item.intervalDays) return false;
+    const start = new Date(cycleStartDate + 'T00:00:00');
+    if (date < start) return false;
+    const diffDays = Math.round((date - start) / 86400000);
+    return diffDays % item.intervalDays === 0;
+  }
+  return (item.days || []).includes(date.getDay());
+}
+
 function isScheduledOnDate(date){
-  const weekday = date.getDay();
   return cycles.some(c => {
     if (!c.startDate) return false;
     const start = new Date(c.startDate + 'T00:00:00');
     if (date < start) return false;
-    return getCycleItems(c).some(it => (it.days || []).includes(weekday));
+    return getCycleItems(c).some(it => isItemScheduledOnDate(it, c.startDate, date));
   });
 }
 
@@ -2133,9 +2321,8 @@ function renderDashboard(){
   const occurrences = [];
   cycles.forEach(c => {
     getCycleItems(c).forEach(it => {
-      (it.days || []).forEach(d => {
-        occurrences.push({ date: nextOccurrence(d, c.time, now), cycle: c, item: it });
-      });
+      const date = nextItemOccurrence(it, c.startDate, c.time, now);
+      if (date) occurrences.push({ date, cycle: c, item: it });
     });
   });
   if (occurrences.length) {
@@ -2394,7 +2581,7 @@ let cycItemUid = 0;
 let editingCycleId = null;
 
 function addCycItem(){
-  cycItems.push({ uid: ++cycItemUid, substanceId: '', doseMl: '', days: [] });
+  cycItems.push({ uid: ++cycItemUid, substanceId: '', doseMl: '', days: [], scheduleType: 'weekdays', intervalDays: '' });
   renderCycItems();
 }
 
@@ -2412,7 +2599,15 @@ function renderCycItems(){
         <input type="number" class="cyc-item-dose" step="any" min="0" placeholder="dose ml" value="${it.doseMl}">
         <button type="button" class="cyc-item-remove" title="Remover substância">×</button>
       </div>
-      <div class="weekdays-mini cyc-item-days">${weekdaysMiniHtml(it.days)}</div>
+      <select class="cyc-item-schedule-type">
+        <option value="weekdays" ${it.scheduleType !== 'interval' ? 'selected' : ''}>Dias fixos da semana</option>
+        <option value="interval" ${it.scheduleType === 'interval' ? 'selected' : ''}>A cada N dias</option>
+      </select>
+      <div class="weekdays-mini cyc-item-days" style="${it.scheduleType === 'interval' ? 'display:none;' : ''}">${weekdaysMiniHtml(it.days)}</div>
+      <div class="cyc-item-interval-row" style="${it.scheduleType === 'interval' ? '' : 'display:none;'}">
+        <input type="number" class="cyc-item-interval" min="1" step="1" placeholder="Ex: 10" value="${it.intervalDays}">
+        <span>dias, contando a partir do início do ciclo</span>
+      </div>
     </div>
   `).join('');
 
@@ -2431,6 +2626,17 @@ function renderCycItems(){
         updateCycForecast();
       });
     });
+    const scheduleSel = card.querySelector('.cyc-item-schedule-type');
+    const daysBox = card.querySelector('.cyc-item-days');
+    const intervalBox = card.querySelector('.cyc-item-interval-row');
+    scheduleSel.addEventListener('change', () => {
+      item.scheduleType = scheduleSel.value;
+      daysBox.style.display = item.scheduleType === 'interval' ? 'none' : '';
+      intervalBox.style.display = item.scheduleType === 'interval' ? '' : 'none';
+      updateCycForecast();
+    });
+    const intervalInput = card.querySelector('.cyc-item-interval');
+    intervalInput.addEventListener('input', () => { item.intervalDays = intervalInput.value; updateCycForecast(); });
     card.querySelector('.cyc-item-remove').addEventListener('click', () => removeCycItem(uid));
   });
 }
@@ -2446,10 +2652,16 @@ function updateCycForecast(){
   const box = document.getElementById('cyc-forecast');
   const weeks = parseInt(cycWeeksInput.value);
   const startDate = cycStartDateInput.value;
-  const items = cycItems.filter(it => it.substanceId && parseFloat(it.doseMl) > 0 && it.days.length);
+  const items = cycItems.filter(it => it.substanceId && parseFloat(it.doseMl) > 0 &&
+    (it.scheduleType === 'interval' ? parseInt(it.intervalDays) > 0 : it.days.length));
   if (!weeks || !startDate || !items.length) { box.innerHTML = ''; return; }
 
-  const fakeCycle = { startDate, weeks, items: items.map(it => ({ substanceId: it.substanceId, doseMl: parseFloat(it.doseMl), days: it.days })) };
+  const fakeCycle = {
+    startDate, weeks,
+    items: items.map(it => it.scheduleType === 'interval'
+      ? { substanceId: it.substanceId, doseMl: parseFloat(it.doseMl), days: [], scheduleType: 'interval', intervalDays: parseInt(it.intervalDays) }
+      : { substanceId: it.substanceId, doseMl: parseFloat(it.doseMl), days: it.days, scheduleType: 'weekdays' })
+  };
   const stats = getCycleStats(fakeCycle);
 
   box.innerHTML = `
@@ -2477,9 +2689,11 @@ function startEditCycle(cycle){
   document.getElementById('cyc-notes').value = cycle.notes || '';
 
   cycItems = getCycleItems(cycle).map(it => ({
-    uid: ++cycItemUid, substanceId: it.substanceId, doseMl: it.doseMl, days: [...it.days]
+    uid: ++cycItemUid, substanceId: it.substanceId, doseMl: it.doseMl, days: [...(it.days || [])],
+    scheduleType: it.scheduleType === 'interval' ? 'interval' : 'weekdays',
+    intervalDays: it.intervalDays || ''
   }));
-  if (!cycItems.length) cycItems = [{ uid: ++cycItemUid, substanceId: '', doseMl: '', days: [] }];
+  if (!cycItems.length) cycItems = [{ uid: ++cycItemUid, substanceId: '', doseMl: '', days: [], scheduleType: 'weekdays', intervalDays: '' }];
   renderCycItems();
   updateCycForecast();
 
@@ -2511,11 +2725,14 @@ formCycle.addEventListener('submit', async (e) => {
   const weeksVal = cycWeeksInput.value ? parseInt(cycWeeksInput.value) : null;
   const notes = document.getElementById('cyc-notes').value.trim();
   const items = cycItems
-    .filter(it => it.substanceId && parseFloat(it.doseMl) > 0 && it.days.length)
-    .map(it => ({ substanceId: it.substanceId, doseMl: parseFloat(it.doseMl), days: [...it.days].sort() }));
+    .filter(it => it.substanceId && parseFloat(it.doseMl) > 0 &&
+      (it.scheduleType === 'interval' ? parseInt(it.intervalDays) > 0 : it.days.length))
+    .map(it => it.scheduleType === 'interval'
+      ? { substanceId: it.substanceId, doseMl: parseFloat(it.doseMl), days: [], scheduleType: 'interval', intervalDays: parseInt(it.intervalDays) }
+      : { substanceId: it.substanceId, doseMl: parseFloat(it.doseMl), days: [...it.days].sort(), scheduleType: 'weekdays' });
 
   if (!name || !time || !startDate || !items.length) {
-    showToast('Preencha nome, horário, data de início e ao menos uma substância com dose e dia marcado.', 'err');
+    showToast('Preencha nome, horário, data de início e ao menos uma substância com dose e dia (ou intervalo) definido.', 'err');
     return;
   }
 
@@ -2571,19 +2788,34 @@ function getCycleStats(cycle){
     endDate.setDate(endDate.getDate() + weeks * 7 - 1);
   }
 
-  const distinctDays = new Set();
-  items.forEach(it => (it.days || []).forEach(d => distinctDays.add(d)));
-  const expectedApplications = weeks ? distinctDays.size * weeks : null;
+  let totalMl = null, totalMg = null, weeklyMl = 0, weeklyMg = 0, expectedApplications = null;
 
-  let weeklyMl = 0, weeklyMg = 0;
-  items.forEach(it => {
-    const sub = substances.find(s => s.id === it.substanceId);
-    const timesPerWeek = (it.days || []).length;
-    weeklyMl += (it.doseMl || 0) * timesPerWeek;
-    weeklyMg += sub ? sub.concentrationMgMl * (it.doseMl || 0) * timesPerWeek : 0;
-  });
-  const totalMl = weeks ? weeklyMl * weeks : null;
-  const totalMg = weeks ? weeklyMg * weeks : null;
+  if (startDate && endDate) {
+    totalMl = 0; totalMg = 0; expectedApplications = 0;
+    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+      let dayHasApp = false;
+      items.forEach(it => {
+        if (isItemScheduledOnDate(it, cycle.startDate, d)) {
+          const sub = substances.find(s => s.id === it.substanceId);
+          totalMl += it.doseMl || 0;
+          totalMg += sub ? sub.concentrationMgMl * (it.doseMl || 0) : 0;
+          dayHasApp = true;
+        }
+      });
+      if (dayHasApp) expectedApplications++;
+    }
+    weeklyMl = totalMl / weeks;
+    weeklyMg = totalMg / weeks;
+  } else {
+    // sem data final definida: mostra só a taxa semanal (só faz sentido para dias fixos)
+    items.forEach(it => {
+      if (it.scheduleType === 'interval') return;
+      const sub = substances.find(s => s.id === it.substanceId);
+      const timesPerWeek = (it.days || []).length;
+      weeklyMl += (it.doseMl || 0) * timesPerWeek;
+      weeklyMg += sub ? sub.concentrationMgMl * (it.doseMl || 0) * timesPerWeek : 0;
+    });
+  }
 
   return { weeks, startDate, endDate, expectedApplications, weeklyMl, weeklyMg, totalMl, totalMg };
 }
@@ -2606,7 +2838,7 @@ function shareCycleOnWhatsApp(cycle){
   lines.push('Substâncias:');
   items.forEach(it => {
     const sub = substances.find(s => s.id === it.substanceId);
-    const dayLabels = (it.days || []).map(d => WEEKDAY_LABELS[d]).join(', ');
+    const dayLabels = itemScheduleText(it);
     const mgEach = sub ? fmt(sub.concentrationMgMl * it.doseMl) : '—';
     lines.push(`- ${subLabel(sub)} — ${fmt(it.doseMl)} ml (${mgEach} mg) por aplicação (${dayLabels})`);
   });
@@ -2651,7 +2883,7 @@ function openCycleDetail(cycle){
   html += `<table class="report-table"><thead><tr><th>Substância</th><th>Dose</th><th>mg/aplicação</th><th>Dias</th></tr></thead><tbody>`;
   items.forEach(it => {
     const sub = substances.find(s => s.id === it.substanceId);
-    const dayLabels = (it.days || []).map(d => WEEKDAY_LABELS[d]).join(', ');
+    const dayLabels = itemScheduleText(it);
     const mgEach = sub ? fmt(sub.concentrationMgMl * it.doseMl) : '—';
     html += `<tr><td>${escapeHtml(subLabel(sub))}</td><td>${fmt(it.doseMl)} ml</td><td>${mgEach} mg</td><td>${escapeHtml(dayLabels)}</td></tr>`;
   });
@@ -2690,12 +2922,10 @@ function renderCycles(){
       const subRows = items.map(it => {
         const sub = substances.find(s => s.id === it.substanceId);
         const label = subLabel(sub);
-        const dayPills = WEEKDAY_LABELS.map((lb, i) =>
-          `<span class="${it.days.includes(i) ? 'on' : ''}">${lb}</span>`).join('');
         return `
         <div class="cs-row">
           <div class="cs-top"><span>${escapeHtml(label)}</span><span class="cs-dose">${fmt(it.doseMl)} ml</span></div>
-          <div class="cs-days">${dayPills}</div>
+          ${itemScheduleHtml(it)}
         </div>`;
       }).join('');
       const startLabel = c.startDate ? `iniciado em ${new Date(c.startDate + 'T00:00:00').toLocaleDateString('pt-BR')}` : '';
@@ -2795,13 +3025,22 @@ function selectedWeekday(){
   return isNaN(d) ? new Date().getDay() : d.getDay(); // 0=Dom ... 6=Sáb, mesmo mapeamento usado nos ciclos
 }
 
+function selectedDateOnly(){
+  const val = regDatetimeInput.value;
+  const d = val ? new Date(val) : new Date();
+  const clean = isNaN(d) ? new Date() : d;
+  clean.setHours(0, 0, 0, 0);
+  return clean;
+}
+
 function refreshRegSubstancesList(){
   const cycle = cycles.find(c => c.id === regCycleSel.value);
   const weekday = selectedWeekday();
-  const items = cycle ? getCycleItems(cycle).filter(it => it.days.includes(weekday)) : [];
+  const date = selectedDateOnly();
+  const items = cycle ? getCycleItems(cycle).filter(it => isItemScheduledOnDate(it, cycle.startDate, date)) : [];
 
   if (!items.length) {
-    regSubstancesList.innerHTML = `<div class="empty-state">${cycle ? 'Nenhuma substância deste ciclo está agendada para ' + WEEKDAY_FULL[weekday] + '.' : 'Selecione um ciclo.'}</div>`;
+    regSubstancesList.innerHTML = `<div class="empty-state">${cycle ? 'Nenhuma substância deste ciclo está agendada para esta data.' : 'Selecione um ciclo.'}</div>`;
     updateCalcReadout();
     return;
   }
@@ -3086,12 +3325,56 @@ formEditApplication.addEventListener('submit', async (e) => {
 const formSymptom = document.getElementById('form-symptom');
 const symDateInput = document.getElementById('sym-date');
 symDateInput.value = new Date().toISOString().slice(0, 10);
+const symFormTitle = document.getElementById('sym-form-title');
+const symEditingBanner = document.getElementById('sym-editing-banner');
+let editingSymptomId = null;
 
 ['mood', 'energy', 'sleep', 'libido'].forEach(key => {
   const slider = document.getElementById('sym-' + key);
   const out = document.getElementById('sym-' + key + '-val');
   slider.addEventListener('input', () => { out.textContent = slider.value; });
 });
+
+function resetSymptomForm(){
+  formSymptom.reset();
+  symDateInput.value = new Date().toISOString().slice(0, 10);
+  ['mood', 'energy', 'sleep', 'libido'].forEach(key => {
+    document.getElementById('sym-' + key).value = 3;
+    document.getElementById('sym-' + key + '-val').textContent = '3';
+  });
+  document.querySelectorAll('#sym-side-effects input:checked').forEach(i => { i.checked = false; });
+  document.getElementById('sym-side-effect-other').value = '';
+}
+
+function startEditSymptom(s){
+  editingSymptomId = s.id;
+  symDateInput.value = s.date || new Date().toISOString().slice(0, 10);
+  ['mood', 'energy', 'sleep', 'libido'].forEach(key => {
+    const val = s[key] ?? 3;
+    document.getElementById('sym-' + key).value = val;
+    document.getElementById('sym-' + key + '-val').textContent = val;
+  });
+  const predefined = [...document.querySelectorAll('#sym-side-effects input')].map(i => i.value);
+  const saved = s.sideEffects || [];
+  document.querySelectorAll('#sym-side-effects input').forEach(i => { i.checked = saved.includes(i.value); });
+  const custom = saved.filter(v => !predefined.includes(v));
+  document.getElementById('sym-side-effect-other').value = custom.join(', ');
+  document.getElementById('sym-notes').value = s.notes || '';
+
+  symFormTitle.innerHTML = 'Editar sintomas <span class="n">// alterações</span>';
+  document.getElementById('sym-submit').textContent = 'Salvar alterações';
+  symEditingBanner.innerHTML = `<div class="editing-banner">Editando registro de ${new Date(s.date + 'T00:00:00').toLocaleDateString('pt-BR')}<button type="button" id="sym-cancel-edit">cancelar</button></div>`;
+  document.getElementById('sym-cancel-edit').addEventListener('click', cancelEditSymptom);
+  symDateInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function cancelEditSymptom(){
+  editingSymptomId = null;
+  resetSymptomForm();
+  symFormTitle.innerHTML = 'Como você está <span class="n">// registro diário</span>';
+  document.getElementById('sym-submit').textContent = 'Salvar registro';
+  symEditingBanner.innerHTML = '';
+}
 
 formSymptom.addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -3105,22 +3388,20 @@ formSymptom.addEventListener('submit', async (e) => {
   const notes = document.getElementById('sym-notes').value.trim();
   const sideEffects = [...document.querySelectorAll('#sym-side-effects input:checked')].map(i => i.value);
   const otherEffect = document.getElementById('sym-side-effect-other').value.trim();
-  if (otherEffect) sideEffects.push(otherEffect);
+  if (otherEffect) otherEffect.split(',').map(v => v.trim()).filter(Boolean).forEach(v => sideEffects.push(v));
 
-  await addDoc(userCollection('symptoms'), {
-    date, mood, energy, sleep, libido, notes, sideEffects,
-    createdAt: serverTimestamp()
-  });
-
-  showToast('Registro de sintomas salvo.');
-  formSymptom.reset();
-  symDateInput.value = new Date().toISOString().slice(0, 10);
-  ['mood', 'energy', 'sleep', 'libido'].forEach(key => {
-    document.getElementById('sym-' + key).value = 3;
-    document.getElementById('sym-' + key + '-val').textContent = '3';
-  });
-  document.querySelectorAll('#sym-side-effects input:checked').forEach(i => { i.checked = false; });
-  document.getElementById('sym-side-effect-other').value = '';
+  if (editingSymptomId) {
+    await updateDoc(userDoc('symptoms', editingSymptomId), { date, mood, energy, sleep, libido, notes, sideEffects });
+    showToast('Alterações salvas.');
+    cancelEditSymptom();
+  } else {
+    await addDoc(userCollection('symptoms'), {
+      date, mood, energy, sleep, libido, notes, sideEffects,
+      createdAt: serverTimestamp()
+    });
+    showToast('Registro de sintomas salvo.');
+    resetSymptomForm();
+  }
   closeModal('modal-sintomas');
 });
 
@@ -3147,7 +3428,10 @@ function renderSymptomList(){
     <div class="symptom-item">
       <div class="symptom-item-top">
         <span class="symptom-date">${dateLabel}</span>
-        <button type="button" class="del" data-del-sym="${s.id}" title="Apagar"><svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button>
+        <div class="hist-item-actions">
+          <button type="button" data-edit-sym="${s.id}" title="Editar"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>
+          <button type="button" class="del" data-del-sym="${s.id}" title="Apagar"><svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button>
+        </div>
       </div>
       <div class="sym-stats">${stats}</div>
       ${effectsHtml}
@@ -3155,10 +3439,18 @@ function renderSymptomList(){
     </div>`;
   }).join('');
 
+  box.querySelectorAll('[data-edit-sym]').forEach(b => {
+    b.addEventListener('click', () => {
+      const s = symptoms.find(x => x.id === b.dataset.editSym);
+      if (s) startEditSymptom(s);
+    });
+  });
+
   box.querySelectorAll('[data-del-sym]').forEach(b => {
     b.addEventListener('click', async () => {
       const ok = await confirmDialog('Apagar este registro de sintomas?');
       if (!ok) return;
+      if (editingSymptomId === b.dataset.delSym) cancelEditSymptom();
       await deleteDoc(userDoc('symptoms', b.dataset.delSym));
       showToast('Registro apagado.');
     });
@@ -3169,13 +3461,13 @@ function renderSymptomList(){
    7c-2) EXAMES DE SANGUE
 ============================================================ */
 const EXAM_FIELDS = [
-  { key: 'testTotal', id: 'exam-test-total', label: 'Testosterona total', unit: 'ng/dL', ref: { min: 300, max: 1000 } },
-  { key: 'testFree', id: 'exam-test-free', label: 'Testosterona livre', unit: 'pg/mL', ref: { min: 9, max: 30 } },
-  { key: 'estradiol', id: 'exam-estradiol', label: 'Estradiol', unit: 'pg/mL', ref: { min: 10, max: 40 } },
-  { key: 'shbg', id: 'exam-shbg', label: 'SHBG', unit: 'nmol/L', ref: { min: 10, max: 57 } },
+  { key: 'testTotal', id: 'exam-test-total', label: 'Testosterona total', unit: 'ng/dL', ref: { M: { min: 300, max: 1000 }, F: { min: 15, max: 70 } } },
+  { key: 'testFree', id: 'exam-test-free', label: 'Testosterona livre', unit: 'pg/mL', ref: { M: { min: 9, max: 30 }, F: { min: 0.3, max: 1.9 } } },
+  { key: 'estradiol', id: 'exam-estradiol', label: 'Estradiol', unit: 'pg/mL', ref: { M: { min: 10, max: 40 }, F: { min: 30, max: 400 } } },
+  { key: 'shbg', id: 'exam-shbg', label: 'SHBG', unit: 'nmol/L', ref: { M: { min: 10, max: 57 }, F: { min: 18, max: 144 } } },
   { key: 'lh', id: 'exam-lh', label: 'LH', unit: 'mUI/mL', ref: { min: 1.7, max: 8.6 } },
   { key: 'fsh', id: 'exam-fsh', label: 'FSH', unit: 'mUI/mL', ref: { min: 1.5, max: 12.4 } },
-  { key: 'prolactin', id: 'exam-prolactin', label: 'Prolactina', unit: 'ng/mL', ref: { min: 4, max: 15.2 } },
+  { key: 'prolactin', id: 'exam-prolactin', label: 'Prolactina', unit: 'ng/mL', ref: { M: { min: 4, max: 15.2 }, F: { min: 4.8, max: 23.3 } } },
   { key: 'cholTotal', id: 'exam-chol-total', label: 'Colesterol total', unit: 'mg/dL', ref: { min: null, max: 200 } },
   { key: 'triglycerides', id: 'exam-triglycerides', label: 'Triglicerídeos', unit: 'mg/dL', ref: { min: null, max: 150 } },
   { key: 'hdl', id: 'exam-hdl', label: 'HDL', unit: 'mg/dL', ref: { min: 40, max: null } },
@@ -3184,12 +3476,12 @@ const EXAM_FIELDS = [
   { key: 'alt', id: 'exam-alt', label: 'TGP (ALT)', unit: 'U/L', ref: { min: 7, max: 56 } },
   { key: 'ggt', id: 'exam-ggt', label: 'Gama GT', unit: 'U/L', ref: { min: 8, max: 61 } },
   { key: 'bilirubin', id: 'exam-bilirubin', label: 'Bilirrubina total', unit: 'mg/dL', ref: { min: 0.3, max: 1.2 } },
-  { key: 'creatinine', id: 'exam-creatinine', label: 'Creatinina', unit: 'mg/dL', ref: { min: 0.7, max: 1.3 } },
+  { key: 'creatinine', id: 'exam-creatinine', label: 'Creatinina', unit: 'mg/dL', ref: { M: { min: 0.7, max: 1.3 }, F: { min: 0.6, max: 1.1 } } },
   { key: 'urea', id: 'exam-urea', label: 'Ureia', unit: 'mg/dL', ref: { min: 7, max: 20 } },
   { key: 'gfr', id: 'exam-gfr', label: 'TFG', unit: 'mL/min', ref: { min: 90, max: null } },
-  { key: 'hemoglobin', id: 'exam-hemoglobin', label: 'Hemoglobina', unit: 'g/dL', ref: { min: 13.5, max: 17.5 } },
-  { key: 'hematocrit', id: 'exam-hematocrit', label: 'Hematócrito', unit: '%', ref: { min: 38.8, max: 50 } },
-  { key: 'rbc', id: 'exam-rbc', label: 'Hemácias', unit: 'milhões/mm³', ref: { min: 4.5, max: 5.9 } },
+  { key: 'hemoglobin', id: 'exam-hemoglobin', label: 'Hemoglobina', unit: 'g/dL', ref: { M: { min: 13.5, max: 17.5 }, F: { min: 12.0, max: 15.5 } } },
+  { key: 'hematocrit', id: 'exam-hematocrit', label: 'Hematócrito', unit: '%', ref: { M: { min: 38.8, max: 50 }, F: { min: 34.9, max: 44.5 } } },
+  { key: 'rbc', id: 'exam-rbc', label: 'Hemácias', unit: 'milhões/mm³', ref: { M: { min: 4.5, max: 5.9 }, F: { min: 4.0, max: 5.2 } } },
   { key: 'psa', id: 'exam-psa', label: 'PSA', unit: 'ng/mL', ref: { min: null, max: 4 } },
   { key: 'glucose', id: 'exam-glucose', label: 'Glicemia', unit: 'mg/dL', ref: { min: 70, max: 99 } },
   { key: 'tsh', id: 'exam-tsh', label: 'TSH', unit: 'µUI/mL', ref: { min: 0.4, max: 4.0 } }
@@ -3198,9 +3490,18 @@ const EXAM_TEXT_FIELDS = [
   { key: 'bp', id: 'exam-bp', label: 'Pressão arterial', unit: 'mmHg' }
 ];
 
+function getFieldRef(field){
+  if (!field.ref) return null;
+  if (field.ref.M || field.ref.F) {
+    return (userProfile.sex === 'F' ? field.ref.F : field.ref.M) || field.ref.M || field.ref.F;
+  }
+  return field.ref;
+}
+
 function isExamOutOfRange(field, value){
-  if (!field.ref || typeof value !== 'number') return false;
-  const { min, max } = field.ref;
+  const ref = getFieldRef(field);
+  if (!ref || typeof value !== 'number') return false;
+  const { min, max } = ref;
   return (min !== null && value < min) || (max !== null && value > max);
 }
 
@@ -3269,7 +3570,8 @@ function renderExamList(){
     el.addEventListener('click', () => {
       const field = EXAM_FIELDS.find(f => f.key === el.dataset.fieldKey);
       if (!field || !field.ref) return;
-      const { min, max } = field.ref;
+      const ref = getFieldRef(field);
+      const { min, max } = ref;
       const refText = min !== null && max !== null ? `${fmt(min)}–${fmt(max)} ${field.unit}`
         : min !== null ? `acima de ${fmt(min)} ${field.unit}`
         : max !== null ? `até ${fmt(max)} ${field.unit}`
@@ -3321,9 +3623,10 @@ function renderExamChart(){
   const w = 600, h = 180, padL = 8, padR = 8, padT = 16, padB = 26;
   const values = points.map(p => p.value);
   let minV = Math.min(...values), maxV = Math.max(...values);
-  if (field.ref) {
-    if (field.ref.min !== null) minV = Math.min(minV, field.ref.min);
-    if (field.ref.max !== null) maxV = Math.max(maxV, field.ref.max);
+  const fieldRef = getFieldRef(field);
+  if (fieldRef) {
+    if (fieldRef.min !== null) minV = Math.min(minV, fieldRef.min);
+    if (fieldRef.max !== null) maxV = Math.max(maxV, fieldRef.max);
   }
   if (minV === maxV) { minV -= 1; maxV += 1; }
   const rangePad = (maxV - minV) * 0.15;
@@ -3333,9 +3636,9 @@ function renderExamChart(){
   const yFor = v => padT + (1 - (v - minV) / (maxV - minV)) * (h - padT - padB);
 
   let refBand = '';
-  if (field.ref && (field.ref.min !== null || field.ref.max !== null)) {
-    const yTop = field.ref.max !== null ? yFor(field.ref.max) : padT;
-    const yBot = field.ref.min !== null ? yFor(field.ref.min) : h - padB;
+  if (fieldRef && (fieldRef.min !== null || fieldRef.max !== null)) {
+    const yTop = fieldRef.max !== null ? yFor(fieldRef.max) : padT;
+    const yBot = fieldRef.min !== null ? yFor(fieldRef.min) : h - padB;
     refBand = `<rect x="${padL}" y="${yTop.toFixed(1)}" width="${w - padL - padR}" height="${Math.max(0, yBot - yTop).toFixed(1)}" fill="var(--ok-tint)"/>`;
   }
 
@@ -3350,8 +3653,8 @@ function renderExamChart(){
     return `<text x="${xFor(i).toFixed(1)}" y="${h - 8}" font-size="9" fill="var(--muted)" text-anchor="middle" font-family="monospace">${p.date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}</text>`;
   }).join('');
   const lastVal = points[points.length - 1].value;
-  const refLabel = field.ref && (field.ref.min !== null || field.ref.max !== null)
-    ? ` · faixa de referência ${field.ref.min !== null ? fmt(field.ref.min) : ''}${field.ref.min !== null && field.ref.max !== null ? '–' : ''}${field.ref.max !== null ? fmt(field.ref.max) : ''} ${field.unit}`
+  const refLabel = fieldRef && (fieldRef.min !== null || fieldRef.max !== null)
+    ? ` · faixa de referência ${fieldRef.min !== null ? fmt(fieldRef.min) : ''}${fieldRef.min !== null && fieldRef.max !== null ? '–' : ''}${fieldRef.max !== null ? fmt(fieldRef.max) : ''} ${field.unit}`
     : '';
 
   box.innerHTML = `
@@ -3365,6 +3668,103 @@ function renderExamChart(){
   `;
 }
 document.getElementById('exam-chart-field').addEventListener('change', renderExamChart);
+
+/* ============================================================
+   7c-3) PESO CORPORAL
+============================================================ */
+const formWeight = document.getElementById('form-weight');
+const weightDateInput = document.getElementById('weight-date');
+weightDateInput.value = new Date().toISOString().slice(0, 10);
+
+formWeight.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (!db) return;
+  const date = weightDateInput.value;
+  const weightKg = parseFloat(document.getElementById('weight-kg').value);
+  if (!date || isNaN(weightKg) || weightKg <= 0) return;
+  const notes = document.getElementById('weight-notes').value.trim();
+
+  await addDoc(userCollection('weightLogs'), { date, weightKg, notes, createdAt: serverTimestamp() });
+  showToast('Peso registrado.');
+  formWeight.reset();
+  weightDateInput.value = new Date().toISOString().slice(0, 10);
+});
+
+function renderWeightList(){
+  const box = document.getElementById('weight-list');
+  if (!box) return;
+  const countEl = document.getElementById('weight-count');
+  if (countEl) countEl.textContent = weightLogs.length ? `// ${weightLogs.length}` : '';
+  if (!weightLogs.length) {
+    box.innerHTML = `<div class="empty-state">Nenhum registro de peso ainda.</div>`;
+  } else {
+    box.innerHTML = weightLogs.map(w => {
+      const dateLabel = new Date(w.date + 'T00:00:00').toLocaleDateString('pt-BR');
+      return `
+      <div class="exam-item">
+        <div class="exam-item-top">
+          <span class="exam-date">${dateLabel}</span>
+          <button type="button" data-del-weight="${w.id}" title="Apagar"><svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button>
+        </div>
+        <div class="exam-values"><span class="exam-val"><span class="exam-val-label">Peso</span><span class="exam-val-num">${fmt(w.weightKg)} kg</span></span></div>
+        ${w.notes ? `<div class="symptom-notes">${escapeHtml(w.notes)}</div>` : ''}
+      </div>`;
+    }).join('');
+
+    box.querySelectorAll('[data-del-weight]').forEach(b => {
+      b.addEventListener('click', async () => {
+        const ok = await confirmDialog('Apagar este registro de peso?');
+        if (!ok) return;
+        await deleteDoc(userDoc('weightLogs', b.dataset.delWeight));
+        showToast('Registro apagado.');
+      });
+    });
+  }
+  renderWeightChart();
+}
+
+function renderWeightChart(){
+  const box = document.getElementById('weight-chart');
+  if (!box) return;
+  const points = [...weightLogs]
+    .map(w => ({ date: new Date(w.date + 'T00:00:00'), value: w.weightKg }))
+    .sort((a, b) => a.date - b.date);
+
+  if (points.length < 2) {
+    box.innerHTML = `<div class="empty-state">Precisa de pelo menos 2 registros de peso para desenhar o gráfico.</div>`;
+    return;
+  }
+
+  const w = 600, h = 180, padL = 8, padR = 8, padT = 16, padB = 26;
+  const values = points.map(p => p.value);
+  let minV = Math.min(...values), maxV = Math.max(...values);
+  if (minV === maxV) { minV -= 1; maxV += 1; }
+  const rangePad = (maxV - minV) * 0.15;
+  minV -= rangePad; maxV += rangePad;
+
+  const xFor = i => padL + (i / (points.length - 1)) * (w - padL - padR);
+  const yFor = v => padT + (1 - (v - minV) / (maxV - minV)) * (h - padT - padB);
+
+  const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${xFor(i).toFixed(1)} ${yFor(p.value).toFixed(1)}`).join(' ');
+  const dots = points.map((p, i) => `<circle cx="${xFor(i).toFixed(1)}" cy="${yFor(p.value).toFixed(1)}" r="3.5" fill="var(--teal)"/>`).join('');
+  const labelStep = Math.max(1, Math.ceil(points.length / 6));
+  const labels = points.map((p, i) => {
+    if (i % labelStep !== 0 && i !== points.length - 1) return '';
+    return `<text x="${xFor(i).toFixed(1)}" y="${h - 8}" font-size="9" fill="var(--muted)" text-anchor="middle" font-family="monospace">${p.date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}</text>`;
+  }).join('');
+  const lastVal = points[points.length - 1].value;
+  const firstVal = points[0].value;
+  const diff = lastVal - firstVal;
+
+  box.innerHTML = `
+    <svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto;margin-top:10px;display:block;">
+      <path d="${pathD}" fill="none" stroke="var(--teal)" stroke-width="2"/>
+      ${dots}
+      ${labels}
+    </svg>
+    <div class="dash-compact-total" style="margin-top:4px;">Último peso <b>${fmt(lastVal)} kg</b> · variação no período <b>${diff >= 0 ? '+' : ''}${fmt(diff)} kg</b></div>
+  `;
+}
 
 /* ============================================================
    7d) RELATÓRIO PARA CONSULTA MÉDICA
@@ -3394,11 +3794,12 @@ function renderReport(){
 
   const activeCycle = cycles.find(c => c.active);
   const userEmail = (auth && auth.currentUser) ? auth.currentUser.email : '';
+  const displayName = userProfile.name || userEmail;
 
   let html = `
     <div class="report-header">
       <div class="rh-title">Kronos — Relatório clínico pessoal</div>
-      <div class="rh-meta">${userEmail ? escapeHtml(userEmail) + ' · ' : ''}gerado em ${now.toLocaleDateString('pt-BR')} às ${now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</div>
+      <div class="rh-meta">${displayName ? escapeHtml(displayName) + ' · ' : ''}gerado em ${now.toLocaleDateString('pt-BR')} às ${now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</div>
       <div class="rh-meta">Período: ${periodVal === 'all' ? 'todo o histórico' : 'últimos ' + periodVal + ' dias'}</div>
     </div>
   `;
@@ -3423,7 +3824,7 @@ function renderReport(){
     html += `<table class="report-table" style="margin-top:10px;"><thead><tr><th>Substância</th><th>Dose</th><th>mg/aplicação</th><th>Dias</th></tr></thead><tbody>`;
     items.forEach(it => {
       const sub = substances.find(s => s.id === it.substanceId);
-      const dayLabels = (it.days || []).map(d => WEEKDAY_LABELS[d]).join(', ');
+      const dayLabels = itemScheduleText(it);
       const mgEach = sub ? fmt(sub.concentrationMgMl * it.doseMl) : '—';
       html += `<tr><td>${escapeHtml(subLabel(sub))}</td><td>${fmt(it.doseMl)} ml</td><td>${mgEach} mg</td><td>${escapeHtml(dayLabels)}</td></tr>`;
     });
@@ -3484,8 +3885,9 @@ function renderReport(){
       filledFields.forEach(f => {
         const val = latestExam[f.key];
         const out = isExamOutOfRange(f, val);
-        const refText = f.ref && (f.ref.min !== null || f.ref.max !== null)
-          ? `${f.ref.min !== null ? fmt(f.ref.min) : ''}${f.ref.min !== null && f.ref.max !== null ? '–' : ''}${f.ref.max !== null ? fmt(f.ref.max) : ''}`
+        const fRef = getFieldRef(f);
+        const refText = fRef && (fRef.min !== null || fRef.max !== null)
+          ? `${fRef.min !== null ? fmt(fRef.min) : ''}${fRef.min !== null && fRef.max !== null ? '–' : ''}${fRef.max !== null ? fmt(fRef.max) : ''}`
           : '—';
         html += `<tr><td>${escapeHtml(f.label)}</td><td${out ? ' style="color:var(--danger);font-weight:600;"' : ''}>${typeof val === 'number' ? fmt(val) : escapeHtml(String(val))} ${f.unit}${out ? ' ⚠' : ''}</td><td>${refText}</td></tr>`;
       });
@@ -3549,6 +3951,7 @@ function buildReportShareText(){
 
   const lines = [
     'Kronos — Relatório clínico pessoal',
+    ...(userProfile.name ? [userProfile.name] : []),
     `Gerado em ${now.toLocaleDateString('pt-BR')} às ${now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`,
     `Período: ${periodVal === 'all' ? 'todo o histórico' : 'últimos ' + periodVal + ' dias'}`,
     ''
@@ -3658,7 +4061,7 @@ let unsubscribers = [];
 
 function startDataListeners(){
   if (!db) {
-    renderSubstances(); renderCycles(); renderHistory(); refreshSubstanceSelects(); renderSymptomList(); renderExamList();
+    renderSubstances(); renderCycles(); renderHistory(); refreshSubstanceSelects(); renderSymptomList(); renderExamList(); renderWeightList();
     return;
   }
   unsubscribers.push(onSnapshot(userCollection('substances'), (snap) => {
@@ -3688,12 +4091,21 @@ function startDataListeners(){
     bloodTests = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     renderExamList();
   }));
+
+  unsubscribers.push(onSnapshot(userDoc('profile', 'main'), (snap) => {
+    userProfile = snap.exists() ? snap.data() : {};
+  }));
+
+  unsubscribers.push(onSnapshot(query(userCollection('weightLogs'), orderBy('date', 'desc')), (snap) => {
+    weightLogs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderWeightList();
+  }));
 }
 
 function stopDataListeners(){
   unsubscribers.forEach(unsub => unsub());
   unsubscribers = [];
-  substances = []; cycles = []; applications = []; symptoms = []; bloodTests = [];
+  substances = []; cycles = []; applications = []; symptoms = []; bloodTests = []; userProfile = {}; weightLogs = [];
 }
 </script>
 <script>
